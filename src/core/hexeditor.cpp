@@ -9,14 +9,16 @@ HexEditor::HexEditor(string path)
     this->loadFileAsync(path);
 }
 
-vector<uint8_t> HexEditor::loadFilePart(string path, unsigned long start, unsigned long len) {
-    vector<uint8_t> data(len);
+vector<uint8_t>* HexEditor::loadFilePart(string path, unsigned long start, unsigned long len) {
+    vector<uint8_t> *data = new vector<uint8_t>(len);
     ifstream ifs(path, ios::binary|ios::ate);
     ifs.seekg(static_cast<long>(start), ios::beg);
-    ifs.read(reinterpret_cast<char*>(data.data()), static_cast<long>(len));
+    ifs.read(reinterpret_cast<char*>(data->data()), static_cast<long>(len));
+    this->bytesRead += len;
     return data;
 }
 
+// Parallel async file read
 bool HexEditor::loadFileAsync(string path) {
     ifstream ifs(path, ios::binary|ios::ate);
 
@@ -25,33 +27,49 @@ bool HexEditor::loadFileAsync(string path) {
         return false;
     }
 
+    //clear current data
+    this->current_data.clear();
+    this->current_data.shrink_to_fit();
+    this->tasks.clear();
+
     ifstream::pos_type pos = ifs.tellg(); //file length
-    unsigned long fileSize = static_cast<unsigned long>(pos);
+    this->fileSize = static_cast<unsigned long>(pos);
 
-    // Parallel async file read
-    vector<future<vector<uint8_t>>> tasks;
+    unsigned long chunkSize = fileSize / this->task_num;
+    unsigned long lastChunkSize = fileSize % this->task_num;
 
-    unsigned long chunkSize = fileSize / TASK_NUM;
-    unsigned long lastChunkSize = fileSize % TASK_NUM;
-
+    this->bytesRead = 0;
     int i;
-    for (i = 0; i < TASK_NUM; i++) {
-        tasks.push_back(async([this, &path, &chunkSize, i](){ return this->loadFilePart(path, chunkSize * i, chunkSize); }));
+    for (i = 0; i < this->task_num; i++) {
+        tasks.push_back(async([this, path, chunkSize, i](){ return this->loadFilePart(path, chunkSize * i, chunkSize); }));
     }
 
     // Load the last chunk
-    if (lastChunkSize > 0)
-        tasks.push_back(async([this, &path, &chunkSize, &lastChunkSize, i](){ return this->loadFilePart(path, chunkSize * i, lastChunkSize); }));
-
-    for (auto& task : tasks) {
-        vector<uint8_t> data = task.get();
-        this->current_data.insert(this->current_data.end(), data.begin(), data.end());
+    if (lastChunkSize > 0) {
+      tasks.push_back(async([this, path, chunkSize, lastChunkSize, i](){ return this->loadFilePart(path, chunkSize * i, lastChunkSize); }));
     }
 
     this->current_path = path;
     return true;
 }
-/*
+
+bool HexEditor::isFileLoaded() {
+    if (this->bytesRead < this->fileSize)
+        return false;
+
+    for (auto& task : tasks) {
+        vector<uint8_t> *data = task.get();
+        this->current_data.insert(this->current_data.end(), data->begin(), data->end());
+        delete data;
+    }
+
+    tasks.clear();
+    tasks.shrink_to_fit();
+
+    return true;
+}
+
+/* Legacy function */
 bool HexEditor::loadFile(string path) {
     ifstream ifs(path, ios::binary|ios::ate);
 
@@ -68,9 +86,9 @@ bool HexEditor::loadFile(string path) {
     this->current_path = path;
     return true;
 }
-*/
 
-vector<uint8_t> HexEditor::getCurrentData() {
+
+vector<uint8_t> &HexEditor::getCurrentData() {
     return this->current_data;
 }
 
@@ -96,7 +114,11 @@ bool HexEditor::saveDataToFile(string path) {
         cerr << "The file " << path << " is not accessible." << endl;
         return false;
     }
-    fout.write(reinterpret_cast<char*>(this->current_data.data()), static_cast<long>(this->current_data.size()));
+    fout.write(reinterpret_cast<char*>(this->current_data.data()), fileSize);
     fout.close();
     return true;
+}
+
+void HexEditor::saveDataToFileAsync(string path) {
+    async(&HexEditor::saveDataToFile, this, path);
 }

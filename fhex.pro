@@ -24,10 +24,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-        main.cpp \
-        fhex.cpp \
-    core/hexeditor.cpp
+    src/chunks.cpp \
+    src/commands.cpp \
+        src/main.cpp \
+        src/fhex.cpp \
+    src/core/hexeditor.cpp \
+    src/qhexedit.cpp
 
 HEADERS += \
-        fhex.h \
-    core/hexeditor.h
+    src/chunks.h \
+    src/commands.h \
+        src/fhex.h \
+    src/core/hexeditor.h \
+    src/qhexedit.h
