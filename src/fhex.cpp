@@ -406,7 +406,11 @@ void Fhex::on_menu_goto_offset_click() {
     text.replace("0x", "");
     if (ok && !text.isEmpty()) {
         qint64 offset = text.toLongLong(nullptr, 16);
-        this->qhex->setCursorPosition(offset * 2);
-        this->qhex->ensureVisible();
+        if (offset <= static_cast<long long>(this->hexEditor->fileSize)) {
+            this->qhex->setCursorPosition(offset * 2);
+            this->qhex->ensureVisible();
+        } else {
+            this->statusBar.setText("Error: Out-of-bound offset specified");
+        }
     }
 }

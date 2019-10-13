@@ -2,10 +2,12 @@
 
 HexEditor::HexEditor()
 {
+    this->fileSize = 0;
 }
 
 HexEditor::HexEditor(string path)
 {
+    this->fileSize = 0;
     this->loadFileAsync(path);
 }
 
