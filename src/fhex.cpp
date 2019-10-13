@@ -38,7 +38,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     connect(saveNewFile, &QAction::triggered, this, &Fhex::on_menu_file_save_as_click);
     connect(openNewWindow, &QAction::triggered, this, &Fhex::on_menu_file_new_window_click);
     connect(find, &QAction::triggered, this, &Fhex::on_menu_find_click);
-    connect(find, &QAction::triggered, this, &Fhex::on_menu_convert_bytes_click);
+    connect(convert, &QAction::triggered, this, &Fhex::on_menu_convert_bytes_click);
     /** End Menu Initialization **/
 
     QGridLayout *gridLayout = new QGridLayout;
