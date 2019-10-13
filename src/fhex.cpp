@@ -16,10 +16,12 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     QMenu *file;
     file = menuBar()->addMenu("&File");
     QAction *openFile = new QAction(QIcon::fromTheme("folder-open"), "&Open", this);
+    QAction *diffFile = new QAction(QIcon::fromTheme("folder-open"), "&Diff..", this);
     QAction *saveFile = new QAction(QIcon::fromTheme("document-save"), "&Save", this);
     QAction *saveNewFile = new QAction(QIcon::fromTheme("document-save-as"), "&Save as ..", this);
     QAction *openNewWindow = new QAction(QIcon::fromTheme("window-new"), "&New Window", this);
     file->addAction(openFile);
+    file->addAction(diffFile);
     file->addAction(saveFile);
     file->addAction(saveNewFile);
     file->addAction(openNewWindow);
@@ -33,6 +35,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     edit->addAction(gotoOffset);
 
     connect(gotoOffset, &QAction::triggered, this, &Fhex::on_menu_goto_offset_click);
+    connect(diffFile, &QAction::triggered, this, &Fhex::on_menu_file_diff_click);
     connect(openFile, &QAction::triggered, this, &Fhex::on_menu_file_open_click);
     connect(saveFile, &QAction::triggered, this, &Fhex::on_menu_file_save_click);
     connect(saveNewFile, &QAction::triggered, this, &Fhex::on_menu_file_save_as_click);
@@ -217,6 +220,41 @@ void Fhex::on_menu_file_open_click() {
         this->loadFile(fileName);
         this->loadTables();
     }
+}
+
+void Fhex::on_menu_file_diff_click() {
+    QString path(this->hexEditor->getCurrentPath().c_str());
+    QString fileName = QFileDialog::getOpenFileName(this,
+        tr("Open File"), path,
+        tr("All Files (*)"));
+    if (fileName != "") {
+        QFile f(fileName);
+        f.open(QIODevice::ReadOnly);
+        //Load the compared file only on the gui
+        this->qhex->setData(f.readAll());
+        compare();
+    }
+}
+
+/* This function compares the differences between the data loaded by the backend and the data displayed on the ui */
+// Only a basic comparison is actually implemented
+void Fhex::compare() {
+    unsigned long changes = 0;
+    long long offset = 0;
+    for (uint8_t byte : this->hexEditor->getCurrentData()) {
+        QByteArray qbarr = this->qhex->dataAt(offset, 1);
+        vector<uint8_t> newData(qbarr.begin(), qbarr.end());
+        uint8_t currByte = newData.at(0);
+        if (byte != currByte) {
+            this->qhex->setCursorPosition(offset*2);
+            this->qhex->ensureVisible();
+            this->statusBar.setText("Data changed starting from 0x" + QString::number(offset, 16) + " found 0x" + QString::number(byte, 16) + " instead of 0x" + QString::number(currByte, 16));
+            changes++;
+        }
+        offset++;
+    }
+    if (changes == 0)
+        this->statusBar.setText("Files are equal");
 }
 
 void Fhex::on_menu_file_save_click() {

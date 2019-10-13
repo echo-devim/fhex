@@ -80,10 +80,12 @@ private:
     void dragEnterEvent(QDragEnterEvent *e);
     bool loadFile(QString path);
     void keyPressEvent( QKeyEvent *event );
+    void compare();
 
 public slots:
     void on_editor_mouse_click();
     void on_menu_file_open_click();
+    void on_menu_file_diff_click();
     void on_menu_file_save_click();
     void on_menu_file_save_as_click();
     void on_search_button_click();
