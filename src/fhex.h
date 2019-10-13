@@ -35,6 +35,7 @@
 #include <QVBoxLayout>
 #include <QProgressBar>
 #include <QCheckBox>
+#include <QInputDialog>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -93,6 +94,7 @@ public slots:
     void on_menu_convert_bytes_click();
     void on_menu_file_new_window_click();
     void on_back_search_button_click();
+    void on_menu_goto_offset_click();
 };
 
 #endif // FHEX_H

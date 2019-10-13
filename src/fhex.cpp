@@ -26,9 +26,12 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     edit = menuBar()->addMenu("&Edit");
     QAction *find = new QAction(QIcon::fromTheme("edit-find"), "&Find", this);
     edit->addAction(find);
-    QAction *convert = new QAction(QIcon::fromTheme("convert"), "&Convert Bytes", this);
+    QAction *convert = new QAction(QIcon::fromTheme("view-refresh"), "&Convert Bytes", this);
     edit->addAction(convert);
+    QAction *gotoOffset = new QAction(QIcon::fromTheme("arrow-right"), "&Goto Offset", this);
+    edit->addAction(gotoOffset);
 
+    connect(gotoOffset, &QAction::triggered, this, &Fhex::on_menu_goto_offset_click);
     connect(openFile, &QAction::triggered, this, &Fhex::on_menu_file_open_click);
     connect(saveFile, &QAction::triggered, this, &Fhex::on_menu_file_save_click);
     connect(saveNewFile, &QAction::triggered, this, &Fhex::on_menu_file_save_as_click);
@@ -171,6 +174,8 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
             this->on_menu_convert_bytes_click();
         } else if ((event->key() == Qt::Key_N)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
             this->on_menu_file_new_window_click();
+        } else if ((event->key() == Qt::Key_G)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
+            this->on_menu_goto_offset_click();
         }
     }
 }
@@ -391,4 +396,16 @@ void Fhex::dragEnterEvent(QDragEnterEvent *e)
 void Fhex::on_menu_file_new_window_click() {
     Fhex *newFhex = new Fhex(nullptr, this->app);
     newFhex->show();
+}
+
+void Fhex::on_menu_goto_offset_click() {
+    bool ok;
+    QString text = QInputDialog::getText(this, "Goto Offset", "Offset:", QLineEdit::Normal, "", &ok);
+    text.replace(" ", "");
+    text.replace("0x", "");
+    if (ok && !text.isEmpty()) {
+        qint64 offset = text.toLongLong(nullptr, 16);
+        this->qhex->setCursorPosition(offset * 2);
+        this->qhex->ensureVisible();
+    }
 }
