@@ -6,6 +6,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
 {
     this->app = app;
     this->setWindowTitle("Fhex");
+    this->setWindowIcon(QIcon("icon.png"));
     //this->setStyleSheet("QMainWindow { background-color: #010301 }");
     this->setMinimumSize(800, 500);
 
