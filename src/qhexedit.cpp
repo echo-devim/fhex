@@ -377,18 +377,22 @@ void QHexEdit::ensureVisible()
     viewport()->update();
 }
 
-qint64 QHexEdit::indexOf(const QByteArray &ba, qint64 from)
+qint64 QHexEdit::indexOf(const QByteArray &ba, qint64 from, bool regex)
 {
-    qint64 pos = _chunks->indexOf(ba, from);
+    qint64 pos = _chunks->indexOf(ba, from, regex);
     if (pos > -1)
     {
         qint64 curPos = pos*2;
-        setCursorPosition(curPos + ba.length()*2);
+        setCursorPosition(curPos + _chunks->matchSize*2);
         resetSelection(curPos);
-        setSelection(curPos + ba.length()*2);
+        setSelection(curPos + _chunks->matchSize*2);
         ensureVisible();
     }
     return pos;
+}
+
+qint64 QHexEdit::getMatchSize() {
+    return _chunks->matchSize;
 }
 
 bool QHexEdit::isModified()

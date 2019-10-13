@@ -34,6 +34,7 @@
 #include <QThread>
 #include <QVBoxLayout>
 #include <QProgressBar>
+#include <QCheckBox>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -56,6 +57,7 @@ public:
 private:
     QApplication *app;
     QProgressBar *progressBar;
+    QCheckBox regexCheckBox;
     QFrame *searchBox;
     QComboBox *searchFormatOption;
     QPlainTextEdit *searchText;

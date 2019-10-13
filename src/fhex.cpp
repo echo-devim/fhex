@@ -91,6 +91,10 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     replaceText->setStyleSheet("QPlainTextEdit { margin-left: 90px; }");
     firstRow->addWidget(searchFormatOption);
     firstRow->addWidget(searchText);
+    this->regexCheckBox.setText("regex");
+    this->regexCheckBox.setChecked(true);
+    this->regexCheckBox.setFixedWidth(60);
+    firstRow->addWidget(&regexCheckBox);
     firstRow->addWidget(searchButton);
     secondRow->addWidget(replaceText);
     secondRow->addWidget(replaceButton);
@@ -233,7 +237,7 @@ void Fhex::on_menu_file_save_click() {
 void Fhex::on_search_button_click() {
     qint64 start = this->qhex->cursorPosition() + 1;
     if (this->searchFormatOption->currentText() == "UTF-8") {
-        qint64 res = this->qhex->indexOf(this->searchText->toPlainText().toUtf8(), start);
+        qint64 res = this->qhex->indexOf(this->searchText->toPlainText().toUtf8(), start, this->regexCheckBox.isChecked());
         if (res < 0) {
             this->statusBar.setText("No match found");
         } else {
@@ -242,7 +246,7 @@ void Fhex::on_search_button_click() {
         }
     } else if (this->searchFormatOption->currentText() == "HEX") {
         QString searchedText = this->searchText->toPlainText().toLower().replace(" ", "");
-        qint64 res = this->qhex->indexOf(QByteArray::fromHex(searchedText.toLatin1()), start);
+        qint64 res = this->qhex->indexOf(QByteArray::fromHex(searchedText.toLatin1()), start, this->regexCheckBox.isChecked());
         if (res < 0) {
             this->statusBar.setText("No match found");
         } else {
@@ -258,14 +262,14 @@ qint64 Fhex::replaceBytes(QString searchText, QString replaceText, bool isHex) {
         start++;
     qint64 res = -1;
     if (!isHex) { // Plain text case
-        res = this->qhex->indexOf(searchText.toUtf8(), start);
+        res = this->qhex->indexOf(searchText.toUtf8(), start, this->regexCheckBox.isChecked());
         if (res >= 0) {
             this->qhex->replace(res, replaceText.length(), replaceText.toUtf8());
         }
     } else {
         QString sText = searchText.toLower().replace(" ", "");
         QString rText = replaceText.toLower().replace(" ", "");
-        res = this->qhex->indexOf(QByteArray::fromHex(sText.toLatin1()), start);
+        res = this->qhex->indexOf(QByteArray::fromHex(sText.toLatin1()), start, this->regexCheckBox.isChecked());
         if (res >= 0) {
             this->qhex->replace(res, rText.length(), QByteArray::fromHex(rText.toLatin1()));
         }

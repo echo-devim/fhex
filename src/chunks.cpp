@@ -168,7 +168,7 @@ bool Chunks::dataChanged(qint64 pos)
 
 // ***************************************** Search API
 
-qint64 Chunks::indexOf(const QByteArray &ba, qint64 from)
+qint64 Chunks::indexOf(const QByteArray &ba, qint64 from, bool regex)
 {
     qint64 result = -1;
     QByteArray buffer;
@@ -176,10 +176,29 @@ qint64 Chunks::indexOf(const QByteArray &ba, qint64 from)
     for (qint64 pos=from; (pos < _size) && (result < 0); pos += BUFFER_SIZE)
     {
         buffer = data(pos, BUFFER_SIZE + ba.size() - 1);
-        int findPos = buffer.indexOf(ba);
+        int findPos;
+        if (regex) {
+            try {
+                std::string regex = ba.toStdString();
+                std::cout << "Regex: " << regex << "\n";
+                std::string buf = buffer.toStdString();
+                std::regex re(regex);
+                std::smatch match;
+                if (std::regex_search(buf, match, re)) {
+                    findPos = match.position(0);
+                    matchSize = match.length();
+                }
+            } catch (std::regex_error& e) {
+                std::cerr << "Regex syntax error:" << std::endl << e.what() << std::endl;
+            }
+        } else {
+            findPos = buffer.indexOf(ba);
+            matchSize = ba.size();
+        }
         if (findPos >= 0)
             result = pos + (qint64)findPos;
     }
+
     return result;
 }
 

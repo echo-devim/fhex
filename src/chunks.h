@@ -18,6 +18,9 @@
  */
 
 #include <QtCore>
+#include <regex>
+#include <exception>
+#include <iostream>
 
 struct Chunk
 {
@@ -44,7 +47,7 @@ public:
     bool dataChanged(qint64 pos);
 
     // Search API
-    qint64 indexOf(const QByteArray &ba, qint64 from);
+    qint64 indexOf(const QByteArray &ba, qint64 from, bool regex);
     qint64 lastIndexOf(const QByteArray &ba, qint64 from);
 
     // Char manipulations
@@ -57,6 +60,7 @@ public:
     qint64 pos();
     qint64 size();
 
+    int matchSize;
 
 private:
     int getChunkIndex(qint64 absPos);

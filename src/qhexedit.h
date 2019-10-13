@@ -236,7 +236,9 @@ public:
      * \param from Point where the search starts
      * \return pos if fond, else -1
      */
-    qint64 indexOf(const QByteArray &ba, qint64 from);
+    qint64 indexOf(const QByteArray &ba, qint64 from, bool regex);
+
+    qint64 getMatchSize();
 
     /*! Returns if any changes where done on document
      * \return true when document is modified else false
