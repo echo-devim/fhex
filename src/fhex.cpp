@@ -68,13 +68,16 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     QFormLayout *searchBoxLayout = new QFormLayout(searchBox);
     QHBoxLayout *firstRow = new QHBoxLayout(searchBox);
     QHBoxLayout *secondRow = new QHBoxLayout(searchBox);
-    QPushButton *searchButton = new QPushButton("Search");
+    QPushButton *searchButton = new QPushButton("Find next");
+    QPushButton *backSearchButton = new QPushButton("Find previous");
     QPushButton *replaceButton = new QPushButton("Replace");
     QPushButton *replaceAllButton = new QPushButton("Replace All");
+    connect(backSearchButton, &QPushButton::clicked, this, &Fhex::on_back_search_button_click);
     connect(searchButton, &QPushButton::clicked, this, &Fhex::on_search_button_click);
     connect(replaceButton, &QPushButton::clicked, this, &Fhex::on_replace_button_click);
     connect(replaceAllButton, &QPushButton::clicked, this, &Fhex::on_replace_all_button_click);
-    searchButton->setFixedWidth(60);
+    backSearchButton->setFixedWidth(100);
+    searchButton->setFixedWidth(80);
     replaceButton->setFixedWidth(60);
     replaceAllButton->setFixedWidth(80);
     this->searchText = new QPlainTextEdit(searchBox);
@@ -96,6 +99,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     this->regexCheckBox.setFixedWidth(60);
     firstRow->addWidget(&regexCheckBox);
     firstRow->addWidget(searchButton);
+    firstRow->addWidget(backSearchButton);
     secondRow->addWidget(replaceText);
     secondRow->addWidget(replaceButton);
     secondRow->addWidget(replaceAllButton);
@@ -235,7 +239,7 @@ void Fhex::on_menu_file_save_click() {
 }
 
 void Fhex::on_search_button_click() {
-    qint64 start = this->qhex->cursorPosition() + 1;
+    qint64 start = this->qhex->cursorPosition() / 2;
     if (this->searchFormatOption->currentText() == "UTF-8") {
         qint64 res = this->qhex->indexOf(this->searchText->toPlainText().toUtf8(), start, this->regexCheckBox.isChecked());
         if (res < 0) {
@@ -256,8 +260,35 @@ void Fhex::on_search_button_click() {
     }
 }
 
+void Fhex::on_back_search_button_click() {
+    //Actually regex are not supported in backward search
+    if (this->regexCheckBox.isChecked()) {
+        this->regexCheckBox.setChecked(false);
+    }
+
+    qint64 start = this->qhex->cursorPosition() / 2;
+    if (this->searchFormatOption->currentText() == "UTF-8") {
+        qint64 res = this->qhex->lastIndexOf(this->searchText->toPlainText().toUtf8(), start);
+        if (res < 0) {
+            this->statusBar.setText("No match found");
+        } else {
+            this->statusBar.setText("Found match at 0x" + QString::number(res, 16));
+            this->qhex->setCursorPosition(res);
+        }
+    } else if (this->searchFormatOption->currentText() == "HEX") {
+        QString searchedText = this->searchText->toPlainText().toLower().replace(" ", "");
+        qint64 res = this->qhex->lastIndexOf(QByteArray::fromHex(searchedText.toLatin1()), start);
+        if (res < 0) {
+            this->statusBar.setText("No match found");
+        } else {
+            this->statusBar.setText("Found match at 0x" + QString::number(res, 16));
+            this->qhex->setCursorPosition(res);
+        }
+    }
+}
+
 qint64 Fhex::replaceBytes(QString searchText, QString replaceText, bool isHex) {
-    qint64 start = this->qhex->cursorPosition();
+    qint64 start = this->qhex->cursorPosition() / 2;
     if (start > 0)
         start++;
     qint64 res = -1;

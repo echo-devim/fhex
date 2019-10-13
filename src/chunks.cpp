@@ -180,7 +180,6 @@ qint64 Chunks::indexOf(const QByteArray &ba, qint64 from, bool regex)
         if (regex) {
             try {
                 std::string regex = ba.toStdString();
-                std::cout << "Regex: " << regex << "\n";
                 std::string buf = buffer.toStdString();
                 std::regex re(regex);
                 std::smatch match;
