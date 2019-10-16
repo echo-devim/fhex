@@ -21,6 +21,7 @@ This project is based on **qhexedit2**. New features should be added in the futu
 * Goto offset  [`CTRL + G`]
 * Insert mode supported in order to insert new bytes instead to overwrite the existing one [`INS`]
 * Create new istances [`CTRL + N`]
+* Basic text viewer for the selected text [`CTRL + T`]
 * Shortcuts for all these features
 
 ### License
