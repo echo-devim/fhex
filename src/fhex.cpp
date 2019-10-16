@@ -33,7 +33,10 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     edit->addAction(convert);
     QAction *gotoOffset = new QAction(QIcon::fromTheme("arrow-right"), "&Goto Offset", this);
     edit->addAction(gotoOffset);
+    QAction *openTextViewer = new QAction(QIcon::fromTheme("text-field"), "&Open Text Viewer", this);
+    edit->addAction(openTextViewer);
 
+    connect(openTextViewer, &QAction::triggered, this, &Fhex::on_menu_open_text_viewer_click);
     connect(gotoOffset, &QAction::triggered, this, &Fhex::on_menu_goto_offset_click);
     connect(diffFile, &QAction::triggered, this, &Fhex::on_menu_file_diff_click);
     connect(openFile, &QAction::triggered, this, &Fhex::on_menu_file_open_click);
@@ -180,6 +183,8 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
             this->on_menu_file_new_window_click();
         } else if ((event->key() == Qt::Key_G)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
             this->on_menu_goto_offset_click();
+        } else if ((event->key() == Qt::Key_T)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
+            this->on_menu_open_text_viewer_click();
         }
     }
 }
@@ -451,4 +456,18 @@ void Fhex::on_menu_goto_offset_click() {
             this->statusBar.setText("Error: Out-of-bound offset specified");
         }
     }
+}
+
+void Fhex::on_menu_open_text_viewer_click() {
+    QMainWindow *newWindow = new QMainWindow(this);
+    newWindow->setWindowTitle("Fhex - Text Viewer");
+    QTextEdit *textEdit = new QTextEdit(newWindow);
+    textEdit->setStyleSheet("QTextEdit { background-color: #17120f; color: #ebe5e1; font-size: 16px; }");
+    textEdit->setText(QByteArray::fromHex(this->qhex->selectedData().replace("00", "0a").toUtf8()));
+    if (textEdit->toPlainText() == "")
+        textEdit->setText(this->qhex->data());
+    newWindow->setMinimumWidth(this->width());
+    newWindow->setMinimumHeight(this->height());
+    newWindow->setCentralWidget(textEdit);
+    newWindow->show();
 }
