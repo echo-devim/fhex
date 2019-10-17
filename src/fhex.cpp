@@ -241,29 +241,39 @@ void Fhex::on_menu_file_diff_click() {
         f.open(QIODevice::ReadOnly);
         //Load the compared file only on the gui
         this->qhex->setData(f.readAll());
+        this->statusBar.setText("Starting comparison..");
         compare();
     }
 }
 
 /* This function compares the differences between the data loaded by the backend and the data displayed on the ui */
-// Only a basic comparison is actually implemented
+// Only a basic comparison is actually implemented. Furthermore, this function is very slow and not performant.
 void Fhex::compare() {
     unsigned long changes = 0;
-    long long offset = 0;
+    qint64 offset = 0;
+    qint64 orig_offset = 0;
+    QByteArray diff_bytes;
     for (uint8_t byte : this->hexEditor->getCurrentData()) {
         QByteArray qbarr = this->qhex->dataAt(offset, 1);
         vector<uint8_t> newData(qbarr.begin(), qbarr.end());
         uint8_t currByte = newData.at(0);
         if (byte != currByte) {
-            this->qhex->setCursorPosition(offset*2);
-            this->qhex->ensureVisible();
-            this->statusBar.setText("Data changed starting from 0x" + QString::number(offset, 16) + " found 0x" + QString::number(byte, 16) + " instead of 0x" + QString::number(currByte, 16));
+            if (diff_bytes.size() == 0)
+                orig_offset = offset;
+            diff_bytes.push_back(static_cast<char>(byte));
             changes++;
+        } else {
+            if (diff_bytes.size() > 0) {
+                addFloatingLabel(orig_offset, static_cast<int>(diff_bytes.size()), "Before:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
+                diff_bytes.clear();
+            }
         }
         offset++;
     }
     if (changes == 0)
         this->statusBar.setText("Files are equal");
+    else
+        this->statusBar.setText("Found " + QString::number(changes) + " differences");
 }
 
 void Fhex::on_menu_file_save_click() {
@@ -425,7 +435,6 @@ void Fhex::on_convert_button_click() {
     out += "<hr>Decimal Long:<br><b>" + QString::number(revData.toLong(nullptr, 16)) + "</b>";
     out += "<hr>Decimal Unsigned Long:<br><b>" + QString::number(revData.toULong(nullptr, 16)) + "</b></html>";
     this->convertLabel.setText(out);
-    this->addFloatingLabel(0x15e, 45, "aa");
 }
 
 void Fhex::dropEvent(QDropEvent *event) {

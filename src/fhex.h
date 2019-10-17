@@ -48,6 +48,8 @@
 #define DEFAULT_UNPRINTABLE_CHAR "."
 #define CHUNK_SIZE 1024
 
+#define DIFF_STYLE "QLabel { background-color: rgba(200, 100, 100, 70); }"
+
 class Fhex : public QMainWindow
 {
     Q_OBJECT
