@@ -22,6 +22,8 @@ This project is based on **qhexedit2**. New features should be added in the futu
 * Insert mode supported in order to insert new bytes instead to overwrite the existing one [`INS`]
 * Create new istances [`CTRL + N`]
 * Basic text viewer for the selected text [`CTRL + T`]
+* Reload the current file [`F5`]
+* Compare two different files at byte level (**Work In Progress**)
 * Shortcuts for all these features
 
 ### License
