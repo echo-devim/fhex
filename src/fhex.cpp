@@ -189,6 +189,8 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
             this->on_menu_goto_offset_click();
         } else if ((event->key() == Qt::Key_T)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
             this->on_menu_open_text_viewer_click();
+        } else if (event->key() == Qt::Key_F5) {
+            this->loadFile(this->hexEditor->getCurrentPath().c_str());
         }
     }
 }
@@ -200,6 +202,11 @@ void Fhex::on_menu_find_click() {
 bool Fhex::loadFile(QString path) {
     this->progressBar->setVisible(true);
     this->progressBar->setValue(0);
+    //Clear all floating labels if present
+    for (QLabel *label : this->floatingLabels) {
+        label->close();
+    }
+    this->floatingLabels.clear();
     this->statusBar.setText("Loading " + path);
     auto t1 = std::chrono::high_resolution_clock::now();
     bool res = this->hexEditor->loadFileAsync(path.toStdString());
