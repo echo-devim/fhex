@@ -59,6 +59,7 @@ restrictions.
 
 static const QColor color_brown(153, 78, 20);
 const static QColor color_red(250, 5, 5);
+const static QColor color_soft_red(200, 70, 30);
 const static QColor color_yellow(255, 226, 148);
 const static QColor color_dark_yellow(163, 129, 60);
 const static QColor color_dark_violet(67, 34, 69);

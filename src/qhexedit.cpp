@@ -915,6 +915,8 @@ void QHexEdit::paintEvent(QPaintEvent *event)
                 hex = _hexDataShown.mid((bPosLine + colIdx) * 2, 2);
                 if (hex.toStdString() == "00")
                     painter.setPen(color_dark_gray);
+                else if (hex.toStdString() == "ff")
+                    painter.setPen(color_soft_red);
                 painter.drawText(pxPosX, pxPosY, hexCaps()?hex.toUpper():hex);
                 pxPosX += 3*_pxCharWidth;
 
