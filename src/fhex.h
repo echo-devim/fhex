@@ -82,6 +82,7 @@ private:
     bool loadFile(QString path);
     void keyPressEvent( QKeyEvent *event );
     void compare();
+    void addFloatingLabel(qint64 offset, int len, QString text, QString style = "");
 
 public slots:
     void on_editor_mouse_click();

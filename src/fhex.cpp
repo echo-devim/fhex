@@ -471,3 +471,15 @@ void Fhex::on_menu_open_text_viewer_click() {
     newWindow->setCentralWidget(textEdit);
     newWindow->show();
 }
+
+void Fhex::addFloatingLabel(qint64 offset, int len, QString text, QString style) {
+    QPoint p = this->qhex->getOffsetPos(offset);
+    QLabel *label = new QLabel(this->qhex);
+    if (style == "")
+        style = "QLabel { background-color: rgba(200, 200, 200, 50); border: 1px solid red; }";
+    label->setStyleSheet(style);
+    label->setToolTip(text);
+    label->move(p);
+    label->resize((this->qhex->getPxCharWidth()*3) * len, this->qhex->getPxCharHeight());
+    label->show();
+}

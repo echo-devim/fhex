@@ -1160,3 +1160,26 @@ void QHexEdit::updateCursor()
         _blink = true;
     viewport()->update(_cursorRect);
 }
+
+QPoint QHexEdit::getOffsetPos(qint64 offset) {
+    QPoint p(-1, -1);
+    //Check if the requested offset is one of those displayed
+    if ((offset >= _bPosFirst) && (offset <= _bPosLast)) {
+        //The requested offset is in the displayed area of the hex editor
+        qint64 rel_offset = offset - _bPosFirst;
+        int offsetRow = static_cast<int>(rel_offset / _bytesPerLine);
+        p.setY((offsetRow * _pxCharHeight) + 6);
+        int offsetCol = static_cast<int>(rel_offset % _bytesPerLine);
+        p.setX((offsetCol * _pxCharWidth * 3) + _pxPosHexX); //+ 3 is for 2 chars and 1 space
+    }
+
+    return p;
+}
+
+int QHexEdit::getPxCharWidth() {
+    return _pxCharWidth;
+}
+
+int QHexEdit::getPxCharHeight() {
+    return _pxCharHeight;
+}

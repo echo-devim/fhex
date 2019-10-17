@@ -351,6 +351,10 @@ public:
     QColor selectionColor();
     void setSelectionColor(const QColor &color);
 
+    QPoint getOffsetPos(qint64 offset);         // Get the position in pixels for the given offset
+    int getPxCharWidth();
+    int getPxCharHeight();
+
 protected:
     // Handle events
     void keyPressEvent(QKeyEvent *event);
