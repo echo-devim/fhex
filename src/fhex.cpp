@@ -10,6 +10,8 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     //this->setStyleSheet("QMainWindow { background-color: #010301 }");
     this->setMinimumSize(800, 500);
 
+    this->prev_vscrollbar_value = 0;
+    this->prev_hscrollbar_value = 0;
     this->hexEditor = new HexEditor();
 
     /** Menu Initialization **/
@@ -60,8 +62,10 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
 
     gridLayout->addWidget(qhex, 0, 0, 1, 2);
 
-    connect(qhex, &QHexEdit::handle_keyPressEvent, this, &Fhex::keyPressEvent);
+    connect(this->qhex, &QHexEdit::handle_keyPressEvent, this, &Fhex::keyPressEvent);
     connect(this->qhex, &QHexEdit::handle_mouseClick, this, &Fhex::on_editor_mouse_click);
+    connect(this->qhex->verticalScrollBar(), &QScrollBar::valueChanged, this, &Fhex::on_vertical_scrollbar_change);
+    connect(this->qhex->horizontalScrollBar(), &QScrollBar::valueChanged, this, &Fhex::on_horizontal_scrollbar_change);
 
     this->progressBar = new QProgressBar(this);
     this->progressBar->setRange(0, 100);
@@ -421,6 +425,7 @@ void Fhex::on_convert_button_click() {
     out += "<hr>Decimal Long:<br><b>" + QString::number(revData.toLong(nullptr, 16)) + "</b>";
     out += "<hr>Decimal Unsigned Long:<br><b>" + QString::number(revData.toULong(nullptr, 16)) + "</b></html>";
     this->convertLabel.setText(out);
+    this->addFloatingLabel(0x15e, 45, "aa");
 }
 
 void Fhex::dropEvent(QDropEvent *event) {
@@ -473,13 +478,43 @@ void Fhex::on_menu_open_text_viewer_click() {
 }
 
 void Fhex::addFloatingLabel(qint64 offset, int len, QString text, QString style) {
+    int columns = this->qhex->bytesPerLine();
+    int offsetCol = offset % columns;
+    int diff = (offsetCol + len) - columns;
+    if (diff > 0) { //The length is bigger than columns
+        len = columns - offsetCol; //the label will have a width as long as the end of the row
+        addFloatingLabel(offset + len, diff, text, style);
+    }
     QPoint p = this->qhex->getOffsetPos(offset);
     QLabel *label = new QLabel(this->qhex);
     if (style == "")
-        style = "QLabel { background-color: rgba(200, 200, 200, 50); border: 1px solid red; }";
+        style = "QLabel { background-color: rgba(150, 150, 150, 50); }";
     label->setStyleSheet(style);
     label->setToolTip(text);
     label->move(p);
     label->resize((this->qhex->getPxCharWidth()*3) * len, this->qhex->getPxCharHeight());
     label->show();
+    this->floatingLabels.push_back(label);
+}
+
+void Fhex::on_vertical_scrollbar_change(int value) {
+    int step = value - this->prev_vscrollbar_value;
+    if (step != 0) {
+        //Adjust the position of floating labels on scrolling
+        for (QLabel *label : this->floatingLabels) {
+            label->move(label->x(), label->y() - (step * label->height()));
+        }
+        this->prev_vscrollbar_value = value;
+    }
+}
+
+void Fhex::on_horizontal_scrollbar_change(int value) {
+    int step = value - this->prev_hscrollbar_value;
+    if (step != 0) {
+        //Adjust the position of floating labels on scrolling
+        for (QLabel *label : this->floatingLabels) {
+            label->move(label->x() - step, label->y());
+        }
+        this->prev_hscrollbar_value = value;
+    }
 }

@@ -72,6 +72,9 @@ private:
     QLabel statusBar;
     QLabel offsetBar;
     QLabel convertLabel;
+    vector<QLabel*> floatingLabels;
+    int prev_vscrollbar_value;
+    int prev_hscrollbar_value;
     bool initialized_tables = false;
     qint64 replaceBytes(QString searchText, QString replaceText, bool isHex = true);
     void backgroundLoadTables(long index);
@@ -100,6 +103,8 @@ public slots:
     void on_back_search_button_click();
     void on_menu_goto_offset_click();
     void on_menu_open_text_viewer_click();
+    void on_vertical_scrollbar_change(int value);
+    void on_horizontal_scrollbar_change(int value);
 };
 
 #endif // FHEX_H
