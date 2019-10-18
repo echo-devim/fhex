@@ -21,6 +21,7 @@
 #include <regex>
 #include <exception>
 #include <iostream>
+#include "core/patternmatching.h"
 
 struct Chunk
 {
@@ -60,6 +61,7 @@ public:
     qint64 pos();
     qint64 size();
 
+    vector<Match*> findPatterns(PatternMatching *pm, qint64 from);
     int matchSize;
 
 private:

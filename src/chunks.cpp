@@ -168,6 +168,16 @@ bool Chunks::dataChanged(qint64 pos)
 
 // ***************************************** Search API
 
+vector<Match *> Chunks::findPatterns(PatternMatching *pm, qint64 from) {
+    vector<Match *> res;
+    for (qint64 pos=from; (pos < _size); pos += BUFFER_SIZE)
+    {
+        vector<Match *> tmp = pm->hasMatches(data(pos, BUFFER_SIZE).toStdString());
+        res.insert(res.end(), tmp.begin(), tmp.end());
+    }
+    return res;
+}
+
 qint64 Chunks::indexOf(const QByteArray &ba, qint64 from, bool regex)
 {
     qint64 result = -1;

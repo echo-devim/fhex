@@ -87,7 +87,9 @@ private:
     bool loadFile(QString path);
     void keyPressEvent( QKeyEvent *event );
     void compare();
-    void addFloatingLabel(qint64 offset, int len, QString text, QString style = "");
+    void addFloatingLabel(qint64 offset, int len, QString text, QString style = "", bool addComment = false);
+    void clearFloatingLabels();
+    void findPatterns();
 
 public slots:
     void on_editor_mouse_click();
@@ -107,6 +109,8 @@ public slots:
     void on_menu_open_text_viewer_click();
     void on_vertical_scrollbar_change(int value);
     void on_horizontal_scrollbar_change(int value);
+    void on_menu_find_patterns_click();
+
 };
 
 #endif // FHEX_H

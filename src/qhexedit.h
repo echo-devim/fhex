@@ -7,6 +7,7 @@
 
 #include "chunks.h"
 #include "commands.h"
+#include "core/patternmatching.h"
 
 #ifdef QHEXEDIT_EXPORTS
 #define QHEXEDIT_API Q_DECL_EXPORT
@@ -239,6 +240,7 @@ public:
      */
     qint64 indexOf(const QByteArray &ba, qint64 from, bool regex);
 
+    vector<Match *> findPatterns(qint64 from);
     qint64 getMatchSize();
 
     /*! Returns if any changes where done on document
@@ -439,6 +441,7 @@ private:
     QByteArray _markedShown;                    // marked data in view
     bool _modified;                             // Is any data in editor modified?
     int _rowsShown;                             // lines of text shown
+    PatternMatching *_patternMatching;
     UndoStack * _undoStack;                     // Stack to store edit actions for undo/redo
     /*! \endcond docNever */
 };

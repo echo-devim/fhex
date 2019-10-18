@@ -37,7 +37,10 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     edit->addAction(gotoOffset);
     QAction *openTextViewer = new QAction(QIcon::fromTheme("text-field"), "&Open Text Viewer", this);
     edit->addAction(openTextViewer);
+    QAction *findPatternsMenu = new QAction(QIcon::fromTheme("find"), "&Find Patterns", this);
+    edit->addAction(findPatternsMenu);
 
+    connect(findPatternsMenu, &QAction::triggered, this, &Fhex::on_menu_find_patterns_click);
     connect(openTextViewer, &QAction::triggered, this, &Fhex::on_menu_open_text_viewer_click);
     connect(gotoOffset, &QAction::triggered, this, &Fhex::on_menu_goto_offset_click);
     connect(diffFile, &QAction::triggered, this, &Fhex::on_menu_file_diff_click);
@@ -157,6 +160,7 @@ Fhex::~Fhex()
 
 void Fhex::backgroundLoadTables(long index) {
     this->qhex->setData(QByteArray(reinterpret_cast<const char*>(this->hexEditor->getCurrentData().data()), this->hexEditor->fileSize));
+
     this->initialized_tables = true;
 }
 
@@ -164,7 +168,6 @@ void Fhex::loadTables(long index) {
     this->initialized_tables = false;
 
     std::thread t(&Fhex::backgroundLoadTables, this, index);
-
     t.detach();
 
 }
@@ -189,9 +192,28 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
             this->on_menu_goto_offset_click();
         } else if ((event->key() == Qt::Key_T)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
             this->on_menu_open_text_viewer_click();
+        } else if ((event->key() == Qt::Key_P)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
+            this->on_menu_find_patterns_click();
         } else if (event->key() == Qt::Key_F5) {
             this->loadFile(this->hexEditor->getCurrentPath().c_str());
         }
+    }
+}
+
+void Fhex::on_menu_find_patterns_click() {
+    findPatterns();
+}
+
+void Fhex::findPatterns() {
+    clearFloatingLabels();
+    vector<Match *> matches = this->qhex->findPatterns(0);
+    for (Match *m : matches) {
+        // render highlight area
+        QString style("QLabel { background-color: ");
+        style += m->color.c_str();
+        style += " };";
+        addFloatingLabel(m->index, m->length, m->message.c_str(), style, true);
+        delete m;
     }
 }
 
@@ -199,14 +221,18 @@ void Fhex::on_menu_find_click() {
     this->searchBox->setVisible(!this->searchBox->isVisible());
 }
 
-bool Fhex::loadFile(QString path) {
-    this->progressBar->setVisible(true);
-    this->progressBar->setValue(0);
+void Fhex::clearFloatingLabels() {
     //Clear all floating labels if present
     for (QLabel *label : this->floatingLabels) {
         label->close();
     }
     this->floatingLabels.clear();
+}
+
+bool Fhex::loadFile(QString path) {
+    this->progressBar->setVisible(true);
+    this->progressBar->setValue(0);
+    this->clearFloatingLabels();
     this->statusBar.setText("Loading " + path);
     auto t1 = std::chrono::high_resolution_clock::now();
     bool res = this->hexEditor->loadFileAsync(path.toStdString());
@@ -493,7 +519,7 @@ void Fhex::on_menu_open_text_viewer_click() {
     newWindow->show();
 }
 
-void Fhex::addFloatingLabel(qint64 offset, int len, QString text, QString style) {
+void Fhex::addFloatingLabel(qint64 offset, int len, QString text, QString style, bool addComment) {
     int columns = this->qhex->bytesPerLine();
     int offsetCol = offset % columns;
     int diff = (offsetCol + len) - columns;
@@ -504,13 +530,26 @@ void Fhex::addFloatingLabel(qint64 offset, int len, QString text, QString style)
     QPoint p = this->qhex->getOffsetPos(offset);
     QLabel *label = new QLabel(this->qhex);
     if (style == "")
-        style = "QLabel { background-color: rgba(150, 150, 150, 50); }";
+        style = "QLabel { background-color: rgb(150, 150, 150, 50); }";
     label->setStyleSheet(style);
     label->setToolTip(text);
     label->move(p);
     label->resize((this->qhex->getPxCharWidth()*3) * len, this->qhex->getPxCharHeight());
     label->show();
     this->floatingLabels.push_back(label);
+
+    if (addComment) {
+        QLabel *commentLabel = new QLabel(this->qhex);
+        if (style == "")
+            style = "QLabel { background-color: rgb(150, 150, 150, 50); color: #ffffff; }";
+        commentLabel->setStyleSheet(style);
+        commentLabel->setText(text);
+        commentLabel->move(p.x() + (this->width() / 2), p.y());
+        commentLabel->resize(this->qhex->getPxCharWidth() * text.length(), this->qhex->getPxCharHeight());
+        commentLabel->show();
+        this->floatingLabels.push_back(commentLabel);
+    }
+
 }
 
 void Fhex::on_vertical_scrollbar_change(int value) {

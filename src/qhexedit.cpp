@@ -52,12 +52,15 @@ QHexEdit::QHexEdit(QWidget *parent) : QAbstractScrollArea(parent)
     setHighlighting(true);
     setReadOnly(false);
 
+    this->_patternMatching = new PatternMatching("config.json");
+
     init();
 
 }
 
 QHexEdit::~QHexEdit()
 {
+    delete this->_patternMatching;
 }
 
 // ********************************************************************** Properties
@@ -977,6 +980,11 @@ void QHexEdit::paintEvent(QPaintEvent *event)
         emit currentSizeChanged(_lastEventSize);
     }
 }
+
+vector<Match *> QHexEdit::findPatterns(qint64 from) {
+    return _chunks->findPatterns(this->_patternMatching, from);
+}
+
 
 void QHexEdit::resizeEvent(QResizeEvent *)
 {
