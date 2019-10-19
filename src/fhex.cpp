@@ -7,7 +7,6 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     this->app = app;
     this->setWindowTitle("Fhex");
     this->setWindowIcon(QIcon("/usr/share/icons/fhex.png"));
-    //this->setStyleSheet("QMainWindow { background-color: #010301 }");
     this->setMinimumSize(800, 500);
 
     this->prev_vscrollbar_value = 0;
@@ -206,10 +205,10 @@ void Fhex::on_menu_find_patterns_click() {
 
 void Fhex::findPatterns() {
     clearFloatingLabels();
-    vector<Match *> matches = this->qhex->findPatterns(0);
+    vector<Match *> matches = this->hexEditor->findPatterns(0);
     for (Match *m : matches) {
         // render highlight area
-        QString style("QLabel { background-color: ");
+        QString style("QLabel { color: #fbfbfb; background-color: ");
         style += m->color.c_str();
         style += " };";
         addFloatingLabel(m->index, m->length, m->message.c_str(), style, true);

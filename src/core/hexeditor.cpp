@@ -3,12 +3,19 @@
 HexEditor::HexEditor()
 {
     this->fileSize = 0;
+    string path = string(getenv("HOME")) + "/fhex/config.json";
+    this->patternMatching = new PatternMatching(path);
 }
 
 HexEditor::HexEditor(string path)
 {
-    this->fileSize = 0;
+    HexEditor();
     this->loadFileAsync(path);
+}
+
+HexEditor::~HexEditor()
+{
+    delete this->patternMatching;
 }
 
 vector<uint8_t>* HexEditor::loadFilePart(string path, unsigned long start, unsigned long len) {
@@ -55,6 +62,8 @@ bool HexEditor::loadFileAsync(string path) {
     return true;
 }
 
+
+
 bool HexEditor::isFileLoaded() {
     if (this->bytesRead < this->fileSize)
         return false;
@@ -94,6 +103,11 @@ vector<uint8_t> &HexEditor::getCurrentData() {
     return this->current_data;
 }
 
+string HexEditor::getCurrentDataAsString() {
+    std::string str(this->current_data.begin(), this->current_data.end());
+    return str;
+}
+
 void HexEditor::setCurrentData(vector<uint8_t> &data) {
     this->current_data = data;
 }
@@ -123,4 +137,8 @@ bool HexEditor::saveDataToFile(string path) {
 
 void HexEditor::saveDataToFileAsync(string path) {
     async(&HexEditor::saveDataToFile, this, path);
+}
+
+vector<Match *> HexEditor::findPatterns(unsigned long from) {
+    return this->patternMatching->hasMatches(move(this->getCurrentDataAsString()));
 }
