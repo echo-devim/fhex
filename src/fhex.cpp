@@ -205,10 +205,10 @@ void Fhex::on_menu_find_patterns_click() {
 
 void Fhex::findPatterns() {
     clearFloatingLabels();
-    vector<Match *> matches = this->hexEditor->findPatterns(0);
+    vector<Match *> matches = this->hexEditor->findPatterns();
     for (Match *m : matches) {
         // render highlight area
-        QString style("QLabel { color: #fbfbfb; background-color: ");
+        QString style("QLabel { color: #fbfbfb; padding: 2px; background-color: ");
         style += m->color.c_str();
         style += " };";
         addFloatingLabel(m->index, m->length, m->message.c_str(), style, true);

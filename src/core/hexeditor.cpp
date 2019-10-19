@@ -139,6 +139,39 @@ void HexEditor::saveDataToFileAsync(string path) {
     async(&HexEditor::saveDataToFile, this, path);
 }
 
-vector<Match *> HexEditor::findPatterns(unsigned long from) {
-    return this->patternMatching->hasMatches(move(this->getCurrentDataAsString()));
+vector<Match *> HexEditor::findPatternsInChunk(unsigned long start, unsigned long len) {
+    std::string str(this->current_data.begin() + start, this->current_data.begin() + start + len);
+    vector<Match *> matches = this->patternMatching->hasMatches(move(str));
+    // Update the relative matches position to the absolute position
+    for (Match *m : matches) {
+        m->index += start;
+    }
+    return matches;
+}
+
+vector<Match *> HexEditor::findPatterns() {
+    unsigned long chunkSize = fileSize / this->task_num;
+    unsigned long lastChunkSize = fileSize % this->task_num;
+
+    int i;
+    for (i = 0; i < this->task_num; i++) {
+        pattern_tasks.push_back(async([this, chunkSize, i](){ return this->findPatternsInChunk(chunkSize * i, chunkSize); }));
+    }
+
+    // Load the last chunk
+    if (lastChunkSize > 0) {
+        pattern_tasks.push_back(async([this, chunkSize, lastChunkSize, i](){ return this->findPatternsInChunk(chunkSize * i, lastChunkSize); }));
+    }
+
+    vector<Match*> res;
+    for (auto& ptask : pattern_tasks) {
+        vector<Match*> data = ptask.get();
+        res.insert(res.end(), data.begin(), data.end());
+    }
+
+    this->pattern_tasks.clear();
+    this->pattern_tasks.shrink_to_fit();
+
+    return res;
+    //return this->patternMatching->hasMatches(move(this->getCurrentDataAsString()));
 }

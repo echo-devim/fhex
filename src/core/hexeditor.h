@@ -30,15 +30,17 @@ public:
     bool saveDataToFile(string path);
     void saveDataToFileAsync(string path);
     string getCurrentPath();
-    vector<Match *> findPatterns(unsigned long from);
+    vector<Match *> findPatterns();
 
 private:
     PatternMatching *patternMatching;
     unsigned int task_num = std::thread::hardware_concurrency();
     vector<std::future<vector<uint8_t>*>> tasks;
+    vector<std::future<vector<Match*>>> pattern_tasks;
     string current_path;
     vector<uint8_t> current_data;
     vector<uint8_t>* loadFilePart(string path, unsigned long start, unsigned long len);
+    vector<Match *> findPatternsInChunk(unsigned long start, unsigned long len);
 
 };
 
