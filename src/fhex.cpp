@@ -341,7 +341,6 @@ void Fhex::on_search_button_click() {
             this->statusBar.setText("No match found");
         } else {
             this->statusBar.setText("Found match at 0x" + QString::number(res, 16));
-            this->qhex->setCursorPosition(res);
         }
     } else if (this->searchFormatOption->currentText() == "HEX") {
         QString searchedText = this->searchText->toPlainText().toLower().replace(" ", "");
@@ -350,7 +349,6 @@ void Fhex::on_search_button_click() {
             this->statusBar.setText("No match found");
         } else {
             this->statusBar.setText("Found match at 0x" + QString::number(res, 16));
-            this->qhex->setCursorPosition(res);
         }
     }
 }

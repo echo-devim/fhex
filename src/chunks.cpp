@@ -172,11 +172,12 @@ qint64 Chunks::indexOf(const QByteArray &ba, qint64 from, bool regex)
 {
     qint64 result = -1;
     QByteArray buffer;
+    matchSize = 0;
 
     for (qint64 pos=from; (pos < _size) && (result < 0); pos += BUFFER_SIZE)
     {
         buffer = data(pos, BUFFER_SIZE + ba.size() - 1);
-        int findPos;
+        int findPos = -1;
         if (regex) {
             try {
                 std::string regex = ba.toStdString();
@@ -185,7 +186,7 @@ qint64 Chunks::indexOf(const QByteArray &ba, qint64 from, bool regex)
                 std::smatch match;
                 if (std::regex_search(buf, match, re)) {
                     findPos = match.position(0);
-                    matchSize = match.length();
+                    matchSize = match.str(0).size();
                 }
             } catch (std::regex_error& e) {
                 std::cerr << "Regex syntax error:" << std::endl << e.what() << std::endl;
