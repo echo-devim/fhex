@@ -14,6 +14,7 @@ This project is based on **qhexedit2**. New features should be added in the futu
 * Colored output (white spaces, ASCII characters, UTF-8 and NULL bytes have different colors)
 * Interpret selected bytes as integer, long, unsigned long [`CTRL + B`]
 * Copy & Paste  [`CTRL + C` and  `CTRL + V`]
+* Undo & Redo [`CTRL + Z` and `CTRL + Y`]
 * Drag & Drop
 * Basic comparison between two binaries
 * Overwrite the same file or create a new one  [`CTRL + S`]
@@ -23,7 +24,8 @@ This project is based on **qhexedit2**. New features should be added in the futu
 * Create new istances [`CTRL + N`]
 * Basic text viewer for the selected text [`CTRL + T`]
 * Reload the current file [`F5`]
-* Compare two different files at byte level (**Work In Progress**)
+* Compare two different files at byte level
+* Pattern Matching Engine (**Work In Progress**)
 * Shortcuts for all these features
 
 ### License
