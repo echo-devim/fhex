@@ -5,8 +5,10 @@
 #include <istream>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <future>
 #include <atomic>
+#include <iomanip>
 
 #include "patternmatching.h"
 
@@ -41,6 +43,7 @@ private:
     vector<uint8_t> current_data;
     vector<uint8_t>* loadFilePart(string path, unsigned long start, unsigned long len);
     vector<Match *> findPatternsInChunk(unsigned long start, unsigned long len);
+    string fromUintVectorToPrintableString(vector<uint8_t> &vec, long start, long len);
 
 };
 

@@ -140,7 +140,8 @@ void HexEditor::saveDataToFileAsync(string path) {
 }
 
 vector<Match *> HexEditor::findPatternsInChunk(unsigned long start, unsigned long len) {
-    std::string str(this->current_data.begin() + start, this->current_data.begin() + start + len);
+    string str = fromUintVectorToPrintableString(this->current_data, start, len);
+
     vector<Match *> matches = this->patternMatching->hasMatches(move(str));
     // Update the relative matches position to the absolute position
     for (Match *m : matches) {
@@ -149,18 +150,37 @@ vector<Match *> HexEditor::findPatternsInChunk(unsigned long start, unsigned lon
     return matches;
 }
 
+string HexEditor::fromUintVectorToPrintableString(vector<uint8_t> &vec, long start, long len) {
+    stringstream ss;
+    vector<uint8_t>::const_iterator it;
+
+    for (it = vec.begin() + start; it != (vec.begin() + start + len); it++) {
+        char c = static_cast<char>(*it);
+        if (isprint(c)) {
+            ss << c;
+        } else {
+            ss << ".";
+        }
+    }
+
+    return ss.str();
+}
+
 vector<Match *> HexEditor::findPatterns() {
     unsigned long chunkSize = fileSize / this->task_num;
     unsigned long lastChunkSize = fileSize % this->task_num;
 
     int i;
+    int b_offset = 0;
     for (i = 0; i < this->task_num; i++) {
-        pattern_tasks.push_back(async([this, chunkSize, i](){ return this->findPatternsInChunk(chunkSize * i, chunkSize); }));
+        if ((i*chunkSize) > 512)
+            b_offset = 512;
+        pattern_tasks.push_back(async([this, chunkSize, i, b_offset](){ return this->findPatternsInChunk(chunkSize * i - b_offset, chunkSize + b_offset); }));
     }
 
     // Load the last chunk
     if (lastChunkSize > 0) {
-        pattern_tasks.push_back(async([this, chunkSize, lastChunkSize, i](){ return this->findPatternsInChunk(chunkSize * i, lastChunkSize); }));
+        pattern_tasks.push_back(async([this, chunkSize, lastChunkSize, i, b_offset](){ return this->findPatternsInChunk(chunkSize * i - b_offset, lastChunkSize + b_offset); }));
     }
 
     vector<Match*> res;
@@ -173,5 +193,4 @@ vector<Match *> HexEditor::findPatterns() {
     this->pattern_tasks.shrink_to_fit();
 
     return res;
-    //return this->patternMatching->hasMatches(move(this->getCurrentDataAsString()));
 }
