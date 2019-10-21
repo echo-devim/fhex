@@ -365,21 +365,10 @@ void Fhex::compare(QString filename) {
 
 void Fhex::on_menu_file_save_click() {
     this->statusBar.setText("Saving file..");
-    unsigned long changes = 0;
     if (this->qhex->isModified()) {
         if (this->qhex->data().size() == this->hexEditor->fileSize) {
-            unsigned long offset = 0;
-            for (uint8_t byte : this->hexEditor->getCurrentData()) {
-                QByteArray qbarr = this->qhex->dataAt(static_cast<long long>(offset), 1);
-                vector<uint8_t> newData(qbarr.begin(), qbarr.end());
-                uint8_t currByte = newData.at(0);
-                if (byte != currByte) {
-                    this->hexEditor->updateByte(currByte, offset);
-                    changes++;
-                }
-                offset++;
-            }
-            this->statusBar.setText("File updated! " + QString::number(changes) + " byte(s) changed.");
+            saveDataToFile(this->hexEditor->getCurrentPath());
+            this->statusBar.setText("File updated!");
         } else {
             on_menu_file_save_as_click();
         }
@@ -493,12 +482,16 @@ void Fhex::on_menu_file_save_as_click() {
         tr("Save File"), path,
         tr("All Files (*)"));
     if (fileName != "") {
-        this->hexEditor->getCurrentData().clear();
-        this->hexEditor->getCurrentData().shrink_to_fit();
-        this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().end(), this->qhex->data().begin(), this->qhex->data().end());
-        this->hexEditor->saveDataToFile(fileName.toStdString());
+        saveDataToFile(fileName.toStdString());
         this->statusBar.setText("File saved as " + fileName);
     }
+}
+
+void Fhex::saveDataToFile(string path) {
+    this->hexEditor->getCurrentData().clear();
+    this->hexEditor->getCurrentData().shrink_to_fit();
+    this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().end(), this->qhex->data().begin(), this->qhex->data().end());
+    this->hexEditor->saveDataToFile(path);
 }
 
 void Fhex::on_menu_convert_bytes_click() {

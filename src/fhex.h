@@ -93,6 +93,7 @@ private:
     void addFloatingLabel(qint64 offset, int len, QString text, QString style = "", bool addComment = false);
     void clearFloatingLabels();
     void findPatterns();
+    void saveDataToFile(string path);
 
 public slots:
     void on_editor_mouse_click();
