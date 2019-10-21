@@ -33,6 +33,7 @@ public:
     void saveDataToFileAsync(string path);
     string getCurrentPath();
     vector<Match *> findPatterns();
+    vector<pair<unsigned long, uint8_t>> compareTo(HexEditor &hexEditor);
 
 private:
     PatternMatching *patternMatching;

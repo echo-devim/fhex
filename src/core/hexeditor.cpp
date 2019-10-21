@@ -80,19 +80,22 @@ bool HexEditor::isFileLoaded() {
     return true;
 }
 
-/* Legacy function */
 bool HexEditor::loadFile(string path) {
-    ifstream ifs(path, ios::binary|ios::ate);
+    std::ifstream ifs(path, std::ios::binary);
 
     if (!ifs.good()) {
         cerr << "The file " << path << " is not accessible." << endl;
         return false;
     }
 
-    ifstream::pos_type pos = ifs.tellg(); //file length
-    this->current_data.resize(static_cast<unsigned long>(pos));
-    ifs.seekg(0, ios::beg);
-    ifs.read(reinterpret_cast<char*>(this->current_data.data()), pos);
+    //clear current data
+    this->current_data.clear();
+    this->current_data.shrink_to_fit();
+
+    // copies all data into buffer
+    this->current_data.insert(this->current_data.begin(), std::istreambuf_iterator<char>(ifs), {});
+
+    this->fileSize = this->current_data.size();
 
     this->current_path = path;
     return true;
@@ -193,4 +196,21 @@ vector<Match *> HexEditor::findPatterns() {
     this->pattern_tasks.shrink_to_fit();
 
     return res;
+}
+
+vector<pair<unsigned long, uint8_t>>  HexEditor::compareTo(HexEditor &hexEditor) {
+    vector<pair<unsigned long, uint8_t>> diff_bytes;
+
+    if (this->fileSize != hexEditor.fileSize)
+        return diff_bytes;
+
+    for (unsigned long i = 0; i < this->fileSize; i++) {
+        uint8_t byte_new = hexEditor.getCurrentData()[i];
+        if (this->getCurrentData()[i] != byte_new) {
+            diff_bytes.push_back(pair<unsigned long, uint8_t>(i, byte_new));
+        }
+        this->bytesRead = i;
+    }
+
+    return diff_bytes;
 }

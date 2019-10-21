@@ -38,7 +38,10 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     edit->addAction(openTextViewer);
     QAction *findPatternsMenu = new QAction(QIcon::fromTheme("find"), "&Find Patterns", this);
     edit->addAction(findPatternsMenu);
+    QAction *menuOffsetList = new QAction(QIcon::fromTheme("find"), "&Show/Hide Offset List", this);
+    edit->addAction(menuOffsetList);
 
+    connect(menuOffsetList, &QAction::triggered, this, &Fhex::on_menu_offset_list_click);
     connect(findPatternsMenu, &QAction::triggered, this, &Fhex::on_menu_find_patterns_click);
     connect(openTextViewer, &QAction::triggered, this, &Fhex::on_menu_open_text_viewer_click);
     connect(gotoOffset, &QAction::triggered, this, &Fhex::on_menu_goto_offset_click);
@@ -144,6 +147,13 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
 
     gridLayout->addWidget(convertBox, 0, 3);
 
+    listOffsets = new QListWidget(this);
+    connect(listOffsets, &QListWidget::itemClicked, this, &Fhex::on_list_offset_item_click);
+    listOffsets->setFixedWidth(200);
+    listOffsets->setStyleSheet("QListWidget { background-color: #0a0600; color: #e3e3e3; font-size: 14px;};");
+    listOffsets->setVisible(false);
+    gridLayout->addWidget(listOffsets, 0, 3);
+
     QWidget *mainWidget = new QWidget();
     mainWidget->setLayout(gridLayout);
 
@@ -155,6 +165,25 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
 Fhex::~Fhex()
 {
     delete this->hexEditor;
+}
+
+void Fhex::on_menu_offset_list_click() {
+    this->listOffsets->setVisible(!this->listOffsets->isVisible());
+}
+
+void Fhex::on_list_offset_item_click(QListWidgetItem *item) {
+    QString text = item->text();
+    text.replace(" ", "");
+    text.replace("0x", "");
+    if (!text.isEmpty()) {
+        qint64 offset = text.toLongLong(nullptr, 16);
+        if (offset <= static_cast<long long>(this->hexEditor->fileSize)) {
+            this->qhex->setCursorPosition(offset * 2);
+            this->qhex->ensureVisible();
+        } else {
+            this->statusBar.setText("Error: Out-of-bound offset specified");
+        }
+    }
 }
 
 void Fhex::backgroundLoadTables(long index) {
@@ -193,6 +222,8 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
             this->on_menu_open_text_viewer_click();
         } else if ((event->key() == Qt::Key_P)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
             this->on_menu_find_patterns_click();
+        } else if ((event->key() == Qt::Key_O)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
+            this->on_menu_offset_list_click();
         } else if (event->key() == Qt::Key_F5) {
             this->loadFile(this->hexEditor->getCurrentPath().c_str());
         }
@@ -269,43 +300,67 @@ void Fhex::on_menu_file_diff_click() {
         tr("Open File"), path,
         tr("All Files (*)"));
     if (fileName != "") {
-        QFile f(fileName);
-        f.open(QIODevice::ReadOnly);
-        //Load the compared file only on the gui
-        this->qhex->setData(f.readAll());
-        this->statusBar.setText("Starting comparison..");
-        compare();
+        compare(fileName);
     }
 }
 
-/* This function compares the differences between the data loaded by the backend and the data displayed on the ui */
-// Only a basic comparison is actually implemented. Furthermore, this function is very slow and not performant.
-void Fhex::compare() {
-    unsigned long changes = 0;
-    qint64 offset = 0;
-    qint64 orig_offset = 0;
-    QByteArray diff_bytes;
-    for (uint8_t byte : this->hexEditor->getCurrentData()) {
-        QByteArray qbarr = this->qhex->dataAt(offset, 1);
-        vector<uint8_t> newData(qbarr.begin(), qbarr.end());
-        uint8_t currByte = newData.at(0);
-        if (byte != currByte) {
-            if (diff_bytes.size() == 0)
-                orig_offset = offset;
-            diff_bytes.push_back(static_cast<char>(byte));
-            changes++;
-        } else {
-            if (diff_bytes.size() > 0) {
-                addFloatingLabel(orig_offset, static_cast<int>(diff_bytes.size()), "Before:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
-                diff_bytes.clear();
-            }
+void Fhex::compare(QString filename) {
+
+    this->hexEditor->bytesRead = 0;
+    this->progressBar->setVisible(true);
+    this->progressBar->setValue(0);
+    this->statusBar.setText("Comparing file.. please wait");
+
+    future<vector<pair<unsigned long, uint8_t>>> fut_res = async([this, filename]()
+    {
+        HexEditor newHexEditor;
+        newHexEditor.loadFileAsync(filename.toStdString());
+        while(!newHexEditor.isFileLoaded()) {
+            std::this_thread::sleep_for(100ms);
         }
-        offset++;
+        return this->hexEditor->compareTo(newHexEditor);
+    });
+
+    while (fut_res.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
+        int val = (this->hexEditor->bytesRead * 100) / this->hexEditor->fileSize;
+        this->progressBar->setValue(val);
+        this->repaint();
+        this->app->processEvents();
     }
+
+    this->progressBar->setVisible(false);
+
+    vector<pair<unsigned long, uint8_t>> res = fut_res.get();
+    unsigned long changes = res.size();
+    unsigned long start_offset = 0;
+    unsigned long offset = 0;
+    QByteArray diff_bytes;
+    for (pair<unsigned long, uint8_t> p : res) {
+        if (offset == 0) {
+            start_offset = p.first;
+            offset = start_offset;
+            listOffsets->addItem("0x" + QString::number(start_offset, 16));
+        }
+        if (p.first - offset > 0) {
+            addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "After:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
+            diff_bytes.clear();
+            offset = 0;
+        } else {
+            offset++;
+        }
+        diff_bytes.push_back(static_cast<char>(p.second));
+    }
+    if (diff_bytes.size() > 0) {
+        addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "After:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
+        diff_bytes.clear();
+    }
+
     if (changes == 0)
         this->statusBar.setText("Files are equal");
-    else
-        this->statusBar.setText("Found " + QString::number(changes) + " differences");
+    else {
+        this->statusBar.setText("Found " + QString::number(changes) + " different bytes");
+        listOffsets->setVisible(true);
+    }
 }
 
 void Fhex::on_menu_file_save_click() {

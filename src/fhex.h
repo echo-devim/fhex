@@ -37,6 +37,8 @@
 #include <QCheckBox>
 #include <QInputDialog>
 #include <QTextEdit>
+#include <QListWidget>
+#include <QListWidgetItem>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -68,6 +70,7 @@ private:
     QPlainTextEdit *replaceText;
     QTableWidget *hexTableWidget;
     QTableWidget *charTableWidget;
+    QListWidget *listOffsets;
     HexEditor *hexEditor;
     QHexEdit *qhex;
     QFrame *convertBox;
@@ -86,7 +89,7 @@ private:
     void dragEnterEvent(QDragEnterEvent *e);
     bool loadFile(QString path);
     void keyPressEvent( QKeyEvent *event );
-    void compare();
+    void compare(QString filename);
     void addFloatingLabel(qint64 offset, int len, QString text, QString style = "", bool addComment = false);
     void clearFloatingLabels();
     void findPatterns();
@@ -110,6 +113,8 @@ public slots:
     void on_vertical_scrollbar_change(int value);
     void on_horizontal_scrollbar_change(int value);
     void on_menu_find_patterns_click();
+    void on_list_offset_item_click(QListWidgetItem *item);
+    void on_menu_offset_list_click();
 
 };
 
