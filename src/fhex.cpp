@@ -490,7 +490,8 @@ void Fhex::on_menu_file_save_as_click() {
 void Fhex::saveDataToFile(string path) {
     this->hexEditor->getCurrentData().clear();
     this->hexEditor->getCurrentData().shrink_to_fit();
-    this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().end(), this->qhex->data().begin(), this->qhex->data().end());
+    QByteArray datacopy(this->qhex->data());
+    this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().begin(), datacopy.begin(), datacopy.end());
     this->hexEditor->saveDataToFile(path);
 }
 
