@@ -342,7 +342,7 @@ void Fhex::compare(QString filename) {
             listOffsets->addItem("0x" + QString::number(start_offset, 16));
         }
         if (p.first - offset > 0) {
-            addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "After:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
+            addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "Compared file:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
             diff_bytes.clear();
             offset = 0;
         } else {
@@ -516,10 +516,14 @@ void Fhex::on_convert_button_click() {
 }
 
 void Fhex::dropEvent(QDropEvent *event) {
-    const QUrl url = event->mimeData()->urls().first();
+    const QUrl url = event->mimeData()->urls().at(0);
     QString fileName = url.toLocalFile();
     this->loadFile(fileName);
     this->loadTables();
+    //More than one file, compare them
+    if (event->mimeData()->urls().size() > 1) {
+        this->compare(event->mimeData()->urls().at(1).toLocalFile());
+    }
 }
 
 void Fhex::dragEnterEvent(QDragEnterEvent *e)

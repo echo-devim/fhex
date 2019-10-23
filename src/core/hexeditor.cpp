@@ -201,9 +201,6 @@ vector<Match *> HexEditor::findPatterns() {
 vector<pair<unsigned long, uint8_t>>  HexEditor::compareTo(HexEditor &hexEditor) {
     vector<pair<unsigned long, uint8_t>> diff_bytes;
 
-    if (this->fileSize != hexEditor.fileSize)
-        return diff_bytes;
-
     for (unsigned long i = 0; i < this->fileSize; i++) {
         uint8_t byte_new = hexEditor.getCurrentData()[i];
         if (this->getCurrentData()[i] != byte_new) {
