@@ -116,6 +116,7 @@ public slots:
     void on_menu_find_patterns_click();
     void on_list_offset_item_click(QListWidgetItem *item);
     void on_menu_offset_list_click();
+    void on_menu_new_file_click();
 
 };
 

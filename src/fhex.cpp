@@ -16,11 +16,13 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     /** Menu Initialization **/
     QMenu *file;
     file = menuBar()->addMenu("&File");
+    QAction *newFile = new QAction(QIcon::fromTheme("document-new"), "&New", this);
     QAction *openFile = new QAction(QIcon::fromTheme("folder-open"), "&Open", this);
     QAction *diffFile = new QAction(QIcon::fromTheme("folder-open"), "&Diff..", this);
     QAction *saveFile = new QAction(QIcon::fromTheme("document-save"), "&Save", this);
     QAction *saveNewFile = new QAction(QIcon::fromTheme("document-save-as"), "&Save as ..", this);
     QAction *openNewWindow = new QAction(QIcon::fromTheme("window-new"), "&New Window", this);
+    file->addAction(newFile);
     file->addAction(openFile);
     file->addAction(diffFile);
     file->addAction(saveFile);
@@ -41,6 +43,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     QAction *menuOffsetList = new QAction(QIcon::fromTheme("find"), "&Show/Hide Offset List", this);
     edit->addAction(menuOffsetList);
 
+    connect(newFile, &QAction::triggered, this, &Fhex::on_menu_new_file_click);
     connect(menuOffsetList, &QAction::triggered, this, &Fhex::on_menu_offset_list_click);
     connect(findPatternsMenu, &QAction::triggered, this, &Fhex::on_menu_find_patterns_click);
     connect(openTextViewer, &QAction::triggered, this, &Fhex::on_menu_open_text_viewer_click);
@@ -492,6 +495,7 @@ void Fhex::saveDataToFile(string path) {
     this->hexEditor->getCurrentData().shrink_to_fit();
     QByteArray datacopy(this->qhex->data());
     this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().begin(), datacopy.begin(), datacopy.end());
+    this->hexEditor->fileSize = this->qhex->data().size();
     this->hexEditor->saveDataToFile(path);
 }
 
@@ -622,4 +626,9 @@ void Fhex::on_horizontal_scrollbar_change(int value) {
         }
         this->prev_hscrollbar_value = value;
     }
+}
+
+void Fhex::on_menu_new_file_click() {
+    //Add one null byte
+    this->qhex->setData(QByteArray::fromStdString("."));
 }
