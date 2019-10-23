@@ -18,15 +18,16 @@ PatternMatching::PatternMatching(string path)
 
 vector<Match*> PatternMatching::hasMatches(string str) {
     vector<Match*> res;
-    long pos = 0;
     for (auto& e : this->jconfig["PatternMatching"]) {
+        string tmp = str;
+        long pos = 0;
         try {
             std::regex re(e["regex"].get<string>());
             std::smatch match;
-            while (regex_search(str, match, re)) {
+            while (regex_search(tmp, match, re)) {
                 int len = match.str(0).size();
                 res.push_back(new Match(e["color"].get<string>(), e["message"].get<string>(), match.position(0) + pos, len));
-                str = match.suffix();
+                tmp = match.suffix();
                 pos += match.position(0) + len;
             }
         } catch (std::regex_error& e) {

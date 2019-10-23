@@ -146,7 +146,7 @@ vector<Match *> HexEditor::findPatternsInChunk(unsigned long start, unsigned lon
     string str = fromUintVectorToPrintableString(this->current_data, start, len);
 
     vector<Match *> matches = this->patternMatching->hasMatches(move(str));
-    // Update the relative matches position to the absolute position
+    // Update the relative match positions to the absolute position
     for (Match *m : matches) {
         m->index += start;
     }
