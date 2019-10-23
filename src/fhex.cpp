@@ -595,7 +595,7 @@ void Fhex::addFloatingLabel(qint64 offset, int len, QString text, QString style,
         commentLabel->setStyleSheet(style);
         commentLabel->setText(text);
         commentLabel->move(p.x() + (this->width() / 2), p.y());
-        commentLabel->resize(this->qhex->getPxCharWidth() * text.length(), this->qhex->getPxCharHeight());
+        commentLabel->adjustSize();
         commentLabel->show();
         this->floatingLabels.push_back(commentLabel);
     }
