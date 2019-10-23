@@ -1000,7 +1000,6 @@ void QHexEdit::resizeEvent(QResizeEvent *)
         // to prevent devision by zero use the min value 1
         setBytesPerLine(std::max(charWidth / (_asciiArea ? 4 : 3),1));
     }
-    adjust();
 }
 
 bool QHexEdit::focusNextPrevChild(bool next)
