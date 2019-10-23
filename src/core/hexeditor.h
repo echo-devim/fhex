@@ -26,7 +26,8 @@ public:
     bool loadFileAsync(string path);
     bool isFileLoaded();
     vector<uint8_t> &getCurrentData();
-    string getCurrentDataAsString();
+    string getCurrentDataAsString(unsigned long start, unsigned long len);
+    wstring getCurrentDataAsWString(unsigned long start, unsigned long len);
     void setCurrentData(vector<uint8_t> &data);
     void updateByte(uint8_t new_byte, unsigned long file_offset);
     bool saveDataToFile(string path);

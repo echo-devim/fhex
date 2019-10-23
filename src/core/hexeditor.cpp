@@ -106,8 +106,16 @@ vector<uint8_t> &HexEditor::getCurrentData() {
     return this->current_data;
 }
 
-string HexEditor::getCurrentDataAsString() {
-    std::string str(this->current_data.begin(), this->current_data.end());
+string HexEditor::getCurrentDataAsString(unsigned long start, unsigned long len) {
+    std::string str(this->current_data.begin() + start, this->current_data.begin() + start + len);
+    return str;
+}
+
+wstring HexEditor::getCurrentDataAsWString(unsigned long start, unsigned long len) {
+    wstring str;
+    for (auto it = this->getCurrentData().begin() + start; it != this->getCurrentData().begin() + start + len; ++it) {
+        str.push_back(*it);
+    }
     return str;
 }
 

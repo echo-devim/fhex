@@ -227,6 +227,9 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
             this->on_menu_find_patterns_click();
         } else if ((event->key() == Qt::Key_O)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
             this->on_menu_offset_list_click();
+        } else if ((event->key() == Qt::Key_C)  && QApplication::keyboardModifiers() && Qt::ControlModifier && Qt::ShiftModifier) {
+            pair<qint64,qint64> offsets = this->qhex->selectedOffsets();
+            QApplication::clipboard()->setText(QString::fromWCharArray(this->hexEditor->getCurrentDataAsWString(offsets.first, offsets.second - offsets.first).c_str()));
         } else if (event->key() == Qt::Key_F5) {
             this->loadFile(this->hexEditor->getCurrentPath().c_str());
         }

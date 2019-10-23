@@ -260,6 +260,7 @@ public:
     /*! Return the selected content of QHexEdit as QByteArray
     */
     QString selectedData();
+    std::pair<qint64, quint64> selectedOffsets();
 
     /*! Set Font of QHexEdit
      * \param font

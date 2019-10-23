@@ -433,6 +433,10 @@ QString QHexEdit::selectedData()
     return ba;
 }
 
+std::pair<qint64, quint64> QHexEdit::selectedOffsets() {
+    return std::pair<qint64, qint64>(getSelectionBegin(), getSelectionEnd());
+}
+
 void QHexEdit::setFont(const QFont &font)
 {
     QWidget::setFont(font);
