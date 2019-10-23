@@ -5,6 +5,7 @@
 #include <exception>
 #include <iostream>
 #include <regex>
+#include <codecvt>
 #include "json.h"
 
 using json = nlohmann::json;
@@ -12,11 +13,11 @@ using namespace std;
 
 class Match {
 public:
-    int index;
-    int length;
+    unsigned long index;
+    unsigned long length;
     string color;
     string message;
-    Match(string color, string message, int index, int length) {
+    Match(string color, string message, unsigned long index, unsigned long length) {
         this->color = color;
         this->message = message;
         this->index = index;
@@ -35,7 +36,7 @@ class PatternMatching
 {
 public:
     PatternMatching(string path);
-    vector<Match *> hasMatches(string pattern);
+    vector<Match *> hasMatches(wstring pattern);
 private:
     json jconfig;
 };

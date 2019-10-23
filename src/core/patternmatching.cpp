@@ -16,16 +16,18 @@ PatternMatching::PatternMatching(string path)
     }
 }
 
-vector<Match*> PatternMatching::hasMatches(string str) {
+vector<Match*> PatternMatching::hasMatches(wstring str) {
     vector<Match*> res;
     for (auto& e : this->jconfig["PatternMatching"]) {
-        string tmp = str;
-        long pos = 0;
+        wstring tmp = str;
+        unsigned long pos = 0;
         try {
-            std::regex re(e["regex"].get<string>());
-            std::smatch match;
+            string sregex = e["regex"].get<string>();
+            wstring wsregex = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(sregex);
+            std::wregex re(wsregex);
+            std::wsmatch match;
             while (regex_search(tmp, match, re)) {
-                int len = match.str(0).size();
+                unsigned long len = match.str(0).size();
                 res.push_back(new Match(e["color"].get<string>(), e["message"].get<string>(), match.position(0) + pos, len));
                 tmp = match.suffix();
                 pos += match.position(0) + len;

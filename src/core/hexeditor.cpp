@@ -151,7 +151,7 @@ void HexEditor::saveDataToFileAsync(string path) {
 }
 
 vector<Match *> HexEditor::findPatternsInChunk(unsigned long start, unsigned long len) {
-    string str = fromUintVectorToPrintableString(this->current_data, start, len);
+    wstring str = getCurrentDataAsWString(start, len);
 
     vector<Match *> matches = this->patternMatching->hasMatches(move(str));
     // Update the relative match positions to the absolute position
