@@ -20,8 +20,10 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     QAction *openFile = new QAction(QIcon::fromTheme("folder-open"), "&Open", this);
     QAction *diffFile = new QAction(QIcon::fromTheme("folder-open"), "&Diff..", this);
     QAction *saveFile = new QAction(QIcon::fromTheme("document-save"), "&Save", this);
+    saveFile->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_S));
     QAction *saveNewFile = new QAction(QIcon::fromTheme("document-save-as"), "&Save as ..", this);
     QAction *openNewWindow = new QAction(QIcon::fromTheme("window-new"), "&New Window", this);
+    openNewWindow->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_N));
     file->addAction(newFile);
     file->addAction(openFile);
     file->addAction(diffFile);
@@ -31,16 +33,22 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     QMenu *edit;
     edit = menuBar()->addMenu("&Edit");
     QAction *find = new QAction(QIcon::fromTheme("edit-find"), "&Find", this);
+    find->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_F));
     edit->addAction(find);
     QAction *convert = new QAction(QIcon::fromTheme("view-refresh"), "&Convert Bytes", this);
+    convert->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_B));
     edit->addAction(convert);
     QAction *gotoOffset = new QAction(QIcon::fromTheme("arrow-right"), "&Goto Offset", this);
+    gotoOffset->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_G));
     edit->addAction(gotoOffset);
     QAction *openTextViewer = new QAction(QIcon::fromTheme("text-field"), "&Open Text Viewer", this);
+    openTextViewer->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_T));
     edit->addAction(openTextViewer);
     QAction *findPatternsMenu = new QAction(QIcon::fromTheme("find"), "&Find Patterns", this);
+    findPatternsMenu->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_P));
     edit->addAction(findPatternsMenu);
     QAction *menuOffsetList = new QAction(QIcon::fromTheme("find"), "&Show/Hide Offset List", this);
+    menuOffsetList->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_O));
     edit->addAction(menuOffsetList);
 
     connect(newFile, &QAction::triggered, this, &Fhex::on_menu_new_file_click);
@@ -211,23 +219,7 @@ void Fhex::on_editor_mouse_click() {
 
 void Fhex::keyPressEvent(QKeyEvent *event) {
     if(event->type() == QKeyEvent::KeyPress) {
-        if ((event->key() == Qt::Key_S)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
-            this->on_menu_file_save_click();
-        } else if ((event->key() == Qt::Key_F)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
-            this->on_menu_find_click();
-        } else if ((event->key() == Qt::Key_B)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
-            this->on_menu_convert_bytes_click();
-        } else if ((event->key() == Qt::Key_N)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
-            this->on_menu_file_new_window_click();
-        } else if ((event->key() == Qt::Key_G)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
-            this->on_menu_goto_offset_click();
-        } else if ((event->key() == Qt::Key_T)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
-            this->on_menu_open_text_viewer_click();
-        } else if ((event->key() == Qt::Key_P)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
-            this->on_menu_find_patterns_click();
-        } else if ((event->key() == Qt::Key_O)  && QApplication::keyboardModifiers() && Qt::ControlModifier) {
-            this->on_menu_offset_list_click();
-        } else if ((event->key() == Qt::Key_D) && QApplication::keyboardModifiers() && Qt::ControlModifier) {
+        if ((event->key() == Qt::Key_D) && QApplication::keyboardModifiers() && Qt::ControlModifier) {
             pair<qint64,qint64> offsets = this->qhex->selectedOffsets();
             QApplication::clipboard()->setText(QString::fromWCharArray(this->hexEditor->getCurrentDataAsWString(offsets.first, offsets.second - offsets.first).c_str()));
         } else if (event->key() == Qt::Key_F5) {
