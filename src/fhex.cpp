@@ -198,7 +198,7 @@ void Fhex::on_list_offset_item_click(QListWidgetItem *item) {
 }
 
 void Fhex::backgroundLoadTables(long index) {
-    this->qhex->setData(QByteArray(reinterpret_cast<const char*>(this->hexEditor->getCurrentData().data()), this->hexEditor->fileSize));
+    this->qhex->setData(reinterpret_cast<const char*>(this->hexEditor->getCurrentData().data()), this->hexEditor->fileSize);
 
     this->initialized_tables = true;
 }
@@ -258,6 +258,7 @@ void Fhex::clearFloatingLabels() {
 }
 
 bool Fhex::loadFile(QString path) {
+    this->qhex->clear();
     this->progressBar->setVisible(true);
     this->progressBar->setValue(0);
     this->clearFloatingLabels();

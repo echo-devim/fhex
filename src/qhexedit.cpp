@@ -226,6 +226,16 @@ void QHexEdit::setData(const QByteArray &ba)
     setData(_bData);
 }
 
+void QHexEdit::setData(const char *data, int len) {
+    _bData.setData(data, len);
+    setData(_bData);
+}
+
+void QHexEdit::clear() {
+    this->_data.clear();
+    this->refresh();
+}
+
 QByteArray QHexEdit::data()
 {
     return _chunks->data(0, -1);
@@ -999,6 +1009,10 @@ void QHexEdit::resizeEvent(QResizeEvent *)
         // 2 hex alfa-digits 1 space 1 ascii per byte = 4; if ascii is disabled then 3
         // to prevent devision by zero use the min value 1
         setBytesPerLine(std::max(charWidth / (_asciiArea ? 4 : 3),1));
+    }
+    if (this->lastWindowSize != this->window()->size()) {
+        adjust();
+        this->lastWindowSize = this->window()->size();
     }
 }
 

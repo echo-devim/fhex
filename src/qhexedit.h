@@ -195,6 +195,9 @@ public:
     */
     void remove(qint64 pos, qint64 len=1);
 
+    /*! Clear all the content */
+    void clear();
+
     /*! Replaces a char.
     \param pos Index position, where to overwrite
     \param ch Char, which is to insert
@@ -331,6 +334,7 @@ public:
 
     QByteArray data();
     void setData(const QByteArray &ba);
+    void setData(const char *data, int len);
 
     void setHexCaps(const bool isCaps);
     bool hexCaps();
@@ -366,6 +370,7 @@ protected:
     void resizeEvent(QResizeEvent *);
     virtual bool focusNextPrevChild(bool next);
 private:
+    QSize lastWindowSize;
     // Handle selections
     void resetSelection(qint64 pos);            // set selectionStart and selectionEnd to pos
     void resetSelection();                      // set selectionEnd to selectionStart
