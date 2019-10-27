@@ -243,6 +243,9 @@ void Fhex::on_menu_find_patterns_click() {
 
 void Fhex::findPatterns() {
     clearFloatingLabels();
+    this->statusBar.setText("Searching patterns..");
+    this->statusBar.repaint();
+    long patterns = 0;
     vector<Match *> matches = this->hexEditor->findPatterns();
     for (Match *m : matches) {
         // render highlight area
@@ -251,7 +254,9 @@ void Fhex::findPatterns() {
         style += " };";
         addFloatingLabel(m->index, m->length, m->message.c_str(), style, true);
         delete m;
+        patterns++;
     }
+    this->statusBar.setText("Found " + QString::number(patterns) + " patterns");
 }
 
 void Fhex::on_menu_find_click() {
