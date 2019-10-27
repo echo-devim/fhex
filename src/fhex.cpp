@@ -98,9 +98,9 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     QFormLayout *searchBoxLayout = new QFormLayout(searchBox);
     QHBoxLayout *firstRow = new QHBoxLayout(searchBox);
     QHBoxLayout *secondRow = new QHBoxLayout(searchBox);
-    QPushButton *searchButton = new QPushButton("Find next");
+    searchButton = new QPushButton("Find next");
     QPushButton *backSearchButton = new QPushButton("Find previous");
-    QPushButton *replaceButton = new QPushButton("Replace");
+    replaceButton = new QPushButton("Replace");
     QPushButton *replaceAllButton = new QPushButton("Replace All");
     connect(backSearchButton, &QPushButton::clicked, this, &Fhex::on_back_search_button_click);
     connect(searchButton, &QPushButton::clicked, this, &Fhex::on_search_button_click);
@@ -114,8 +114,12 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     this->replaceText = new QPlainTextEdit(searchBox);
     searchText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     searchText->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    this->searchText->setObjectName("searchText");
+    this->searchText->installEventFilter(this);
     replaceText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     replaceText->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    this->replaceText->setObjectName("replaceText");
+    this->replaceText->installEventFilter(this);
     this->searchFormatOption = new QComboBox(this);
     searchFormatOption->addItem("UTF-8");
     //TODO: formatOption->addItem("UTF-16");
@@ -627,4 +631,21 @@ void Fhex::on_horizontal_scrollbar_change(int value) {
 void Fhex::on_menu_new_file_click() {
     //Add one null byte
     this->qhex->setData(QByteArray::fromStdString("."));
+}
+
+bool Fhex::eventFilter(QObject* o, QEvent* e){
+    if (e->type() != QEvent::KeyPress)
+        return QObject::eventFilter(o, e);
+
+    QKeyEvent* eventKey = static_cast<QKeyEvent*>(e);
+    if ((eventKey->key() == Qt::Key_Enter) || (eventKey->key() == Qt::Key_Return)) {
+        this->statusBar.setText("Pressed Enter");
+        if (o->objectName() == "searchText")
+            this->searchButton->click();
+        else if (o->objectName() == "replaceText")
+            this->replaceButton->click();
+        return true;
+    } else {
+        return QObject::eventFilter(o, e);
+    }
 }

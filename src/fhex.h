@@ -67,7 +67,9 @@ private:
     QFrame *searchBox;
     QComboBox *searchFormatOption;
     QPlainTextEdit *searchText;
+    QPushButton *searchButton;
     QPlainTextEdit *replaceText;
+    QPushButton *replaceButton;
     QTableWidget *hexTableWidget;
     QTableWidget *charTableWidget;
     QListWidget *listOffsets;
@@ -117,6 +119,7 @@ public slots:
     void on_list_offset_item_click(QListWidgetItem *item);
     void on_menu_offset_list_click();
     void on_menu_new_file_click();
+    bool eventFilter(QObject* o, QEvent* e);
 
 };
 
