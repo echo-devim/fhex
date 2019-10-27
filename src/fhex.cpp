@@ -125,7 +125,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     firstRow->addWidget(searchFormatOption);
     firstRow->addWidget(searchText);
     this->regexCheckBox.setText("regex");
-    this->regexCheckBox.setChecked(true);
+    this->regexCheckBox.setChecked(false);
     this->regexCheckBox.setFixedWidth(60);
     firstRow->addWidget(&regexCheckBox);
     firstRow->addWidget(searchButton);
