@@ -232,6 +232,7 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
             QApplication::clipboard()->setText(QString::fromWCharArray(this->hexEditor->getCurrentDataAsWString(offsets.first, offsets.second - offsets.first).c_str()));
         } else if (event->key() == Qt::Key_F5) {
             this->loadFile(this->hexEditor->getCurrentPath().c_str());
+            this->loadTables();
         }
     }
 }
