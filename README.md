@@ -14,8 +14,10 @@ This project is based on **qhexedit2**. New features should be added in the futu
 * Colored output (white spaces, ASCII characters, 0xFF, UTF-8 and NULL bytes have different colors)
 * Interpret selected bytes as integer, long, unsigned long [`CTRL + B`]
 * Copy & Paste  [`CTRL + C` and  `CTRL + V`]
-* Copy selected unicode characters [`CTRL + D`]
+* Copy selected unicode characters [`CTRL + Space`]
+* Zeroing all the selected bytes [`CTRL + D`]
 * Undo & Redo [`CTRL + Z` and `CTRL + Y`]
+* Find & Replace
 * Drag & Drop (*Hint:* Drag&Dropping two files the editor will diff them)
 * Overwrite the same file or create a new one  [`CTRL + S`]
 * Big files supported
