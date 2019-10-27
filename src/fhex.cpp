@@ -292,7 +292,12 @@ bool Fhex::loadFile(QString path) {
     }
     this->progressBar->setVisible(false);
 
-    this->statusBar.setText("File loaded (" + QString::number(this->hexEditor->fileSize / 1024) + " KB) in " + QString::number(duration / 1000.) + "s");
+    if (res) {
+        this->statusBar.setText("File loaded (" + QString::number(this->hexEditor->fileSize / 1024) + " KB) in " + QString::number(duration / 1000.) + "s");
+        this->setWindowTitle("Fhex - " + QString(this->hexEditor->getCurrentPath().c_str()));
+    } else {
+        this->statusBar.setText("Error while opening " + QString(this->hexEditor->getCurrentPath().c_str()));
+    }
     return res;
 }
 
