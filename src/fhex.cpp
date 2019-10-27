@@ -107,9 +107,13 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     connect(replaceButton, &QPushButton::clicked, this, &Fhex::on_replace_button_click);
     connect(replaceAllButton, &QPushButton::clicked, this, &Fhex::on_replace_all_button_click);
     backSearchButton->setFixedWidth(100);
+    backSearchButton->setToolTip("Find the previous occurrence starting from the cursor position");
     searchButton->setFixedWidth(80);
+    this->searchButton->setToolTip("Find the next occurrence starting from the cursor position");
     replaceButton->setFixedWidth(60);
+    this->replaceButton->setToolTip("Replace the next occurrence starting from the cursor position");
     replaceAllButton->setFixedWidth(80);
+    replaceAllButton->setToolTip("Replace all the occurences from the beginning");
     this->searchText = new QPlainTextEdit(searchBox);
     this->replaceText = new QPlainTextEdit(searchBox);
     searchText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
