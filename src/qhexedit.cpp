@@ -379,7 +379,7 @@ void QHexEdit::ensureVisible()
     if (_cursorPosition < (_bPosFirst * 2))
         verticalScrollBar()->setValue((int)(_cursorPosition / 2 / _bytesPerLine));
     if (_cursorPosition > ((_bPosFirst + (_rowsShown - 1)*_bytesPerLine) * 2))
-        verticalScrollBar()->setValue((int)(_cursorPosition / 2 / _bytesPerLine) - _rowsShown + 1);
+        verticalScrollBar()->setValue((int)(_cursorPosition / 2 / _bytesPerLine) - _rowsShown + (_rowsShown / 2));
     if (_pxCursorX < horizontalScrollBar()->value())
         horizontalScrollBar()->setValue(_pxCursorX);
     if ((_pxCursorX + _pxCharWidth) > (horizontalScrollBar()->value() + viewport()->width()))
