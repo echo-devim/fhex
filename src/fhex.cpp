@@ -227,7 +227,7 @@ void Fhex::on_editor_mouse_click() {
 
 void Fhex::keyPressEvent(QKeyEvent *event) {
     if(event->type() == QKeyEvent::KeyPress) {
-        if ((event->key() == Qt::Key_Space) && QApplication::keyboardModifiers() && Qt::ControlModifier) {
+        if ((event->key() == Qt::Key_Space) && QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
             pair<qint64,qint64> offsets = this->qhex->selectedOffsets();
             QApplication::clipboard()->setText(QString::fromWCharArray(this->hexEditor->getCurrentDataAsWString(offsets.first, offsets.second - offsets.first).c_str()));
         } else if (event->key() == Qt::Key_F5) {
