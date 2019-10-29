@@ -941,7 +941,7 @@ void QHexEdit::paintEvent(QPaintEvent *event)
                         ch = '.';
                     r.setRect(pxPosAsciiX2, pxPosY - _pxCharHeight + _pxSelectionSub, _pxCharWidth, _pxCharHeight);
                     painter.fillRect(r, c);
-                    painter.drawText(pxPosAsciiX2, pxPosY, QChar(ch));
+                    painter.drawText(pxPosAsciiX2, pxPosY - 2, QChar(ch));
                     pxPosAsciiX2 += _pxCharWidth;
                 }
             }
