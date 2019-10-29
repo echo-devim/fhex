@@ -976,7 +976,7 @@ void QHexEdit::paintEvent(QPaintEvent *event)
                 int ch = (uchar)_dataShown.at(asciiPositionInShowData);
                 if (ch < ' ' || ch > '~')
                     ch = '.';
-                painter.drawText(_pxCursorX - pxOfsX, _pxCursorY, QChar(ch));
+                painter.drawText(_pxCursorX - pxOfsX, _pxCursorY - 2, QChar(ch));
             }
             else
             {
