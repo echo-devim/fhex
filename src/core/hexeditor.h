@@ -11,12 +11,14 @@
 #include <iomanip>
 
 #include "patternmatching.h"
+#include "diffutils.h"
 
 using namespace std;
 
 class HexEditor
 {
 public:
+    short diff_mode = 0; //0 - Return changed & deleted bytes, 1 - Return changed & added bytes
     unsigned long fileSize;
     atomic<unsigned long> bytesRead;
     HexEditor();
@@ -34,7 +36,7 @@ public:
     void saveDataToFileAsync(string path);
     string getCurrentPath();
     vector<Match *> findPatterns();
-    vector<pair<unsigned long, uint8_t>> compareTo(HexEditor &hexEditor);
+    pair<vector<DiffByte>, vector<DiffByte> > compareTo(HexEditor &hexEditor);
 
 private:
     PatternMatching *patternMatching;

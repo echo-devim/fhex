@@ -76,7 +76,11 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     qhex->setSelectionColor(color_dark_yellow);
     qhex->setHighlightingColor(color_dark_violet);
 
-    gridLayout->addWidget(qhex, 0, 0, 1, 2);
+    qhexContainer = new QHBoxLayout(this);
+    qhexContainer->addWidget(qhex);
+
+    gridLayout->addLayout(qhexContainer, 0, 0, 1, 2);
+    //gridLayout->addWidget(qhex, 0, 0, 1, 2);
 
     connect(this->qhex, &QHexEdit::handle_keyPressEvent, this, &Fhex::keyPressEvent);
     connect(this->qhex, &QHexEdit::handle_mouseClick, this, &Fhex::on_editor_mouse_click);
@@ -329,13 +333,24 @@ void Fhex::compare(QString filename) {
     this->progressBar->setValue(0);
     this->statusBar.setText("Comparing file.. please wait");
 
-    future<vector<pair<unsigned long, uint8_t>>> fut_res = async([this, filename]()
+    QHexEdit *qhex2 = new QHexEdit(this);
+    qhex2->setMinimumWidth(600);
+    qhex2->setStyleSheet("QHexEdit { background-color: #17120f; color: #ebe5e1; }");
+    qhex2->setAddressAreaColor(color_dark_gray);
+    qhex2->setSelectionColor(color_dark_yellow);
+    qhex2->setHighlightingColor(color_dark_violet);
+    this->qhexContainer->addWidget(qhex2);
+
+    future<pair<vector<DiffByte>, vector<DiffByte>>> fut_res = async([this, filename, &qhex2]()
     {
         HexEditor newHexEditor;
         newHexEditor.loadFileAsync(filename.toStdString());
         while(!newHexEditor.isFileLoaded()) {
             std::this_thread::sleep_for(100ms);
         }
+
+        qhex2->setData(reinterpret_cast<const char*>(newHexEditor.getCurrentData().data()), newHexEditor.fileSize);
+
         return this->hexEditor->compareTo(newHexEditor);
     });
 
@@ -348,28 +363,64 @@ void Fhex::compare(QString filename) {
 
     this->progressBar->setVisible(false);
 
-    vector<pair<unsigned long, uint8_t>> res = fut_res.get();
-    unsigned long changes = res.size();
+    pair<vector<DiffByte>, vector<DiffByte>> res = fut_res.get();
+    unsigned long changes = res.first.size();
     unsigned long start_offset = 0;
     unsigned long offset = 0;
     QByteArray diff_bytes;
-    for (pair<unsigned long, uint8_t> p : res) {
-        if (offset == 0) {
-            start_offset = p.first;
+
+    if (changes > 0) {
+        start_offset = res.first[0].index;
+        offset = start_offset;
+        listOffsets->addItem("0x" + QString::number(start_offset, 16));
+    }
+
+    for (DiffByte b : res.first) {
+        if (b.index - offset > 0) {
+            cout << "addingFloatingLabel = " << start_offset << " with size " << static_cast<int>(diff_bytes.size()) << endl;
+            QString style = DIFF_CHANGED_STYLE;
+            addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "Compared file:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, style, false, this->qhex);
+            diff_bytes.clear();
+            //start again from a new offset
+            start_offset = b.index;
             offset = start_offset;
             listOffsets->addItem("0x" + QString::number(start_offset, 16));
         }
-        if (p.first - offset > 0) {
-            addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "Compared file:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
-            diff_bytes.clear();
-            offset = 0;
-        } else {
-            offset++;
-        }
-        diff_bytes.push_back(static_cast<char>(p.second));
+        offset++;
+        diff_bytes.push_back(static_cast<char>(b.data));
     }
     if (diff_bytes.size() > 0) {
-        addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "After:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
+        addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "Compared file:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_CHANGED_STYLE, false, this->qhex);
+        diff_bytes.clear();
+    }
+
+
+    changes = res.second.size();
+    start_offset = 0;
+    offset = 0;
+
+    if (changes > 0) {
+        start_offset = res.second[0].index;
+        offset = start_offset;
+        listOffsets->addItem("0x" + QString::number(start_offset, 16));
+    }
+
+    for (DiffByte b : res.second) {
+        if (b.index - offset > 0) {
+            cout << "addingFloatingLabel = " << start_offset << " with size " << static_cast<int>(diff_bytes.size()) << endl;
+            QString style = DIFF_ADDED_STYLE;
+            addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "Compared file:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, style, false, qhex2);
+            diff_bytes.clear();
+            //start again from a new offset
+            start_offset = b.index;
+            offset = start_offset;
+            listOffsets->addItem("0x" + QString::number(start_offset, 16));
+        }
+        offset++;
+        diff_bytes.push_back(static_cast<char>(b.data));
+    }
+    if (diff_bytes.size() > 0) {
+        addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "Compared file:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_CHANGED_STYLE, false, qhex2);
         diff_bytes.clear();
     }
 
@@ -588,27 +639,29 @@ void Fhex::on_menu_open_text_viewer_click() {
     newWindow->show();
 }
 
-void Fhex::addFloatingLabel(qint64 offset, int len, QString text, QString style, bool addComment) {
-    int columns = this->qhex->bytesPerLine();
+void Fhex::addFloatingLabel(qint64 offset, int len, QString text, QString style, bool addComment, QHexEdit *lqhex) {
+    if (lqhex == nullptr)
+        lqhex = this->qhex;
+    int columns = lqhex->bytesPerLine();
     int offsetCol = offset % columns;
     int diff = (offsetCol + len) - columns;
     if (diff > 0) { //The length is bigger than columns
         len = columns - offsetCol; //the label will have a width as long as the end of the row
         addFloatingLabel(offset + len, diff, text, style);
     }
-    QPoint p = this->qhex->getOffsetPos(offset);
-    QLabel *label = new QLabel(this->qhex);
+    QPoint p = lqhex->getOffsetPos(offset);
+    QLabel *label = new QLabel(lqhex);
     if (style == "")
         style = "QLabel { background-color: rgb(150, 150, 150, 50); }";
     label->setStyleSheet(style);
     label->setToolTip(text);
     label->move(p);
-    label->resize((this->qhex->getPxCharWidth()*3) * len, this->qhex->getPxCharHeight());
+    label->resize((lqhex->getPxCharWidth()*3) * len, lqhex->getPxCharHeight());
     label->show();
     this->floatingLabels.push_back(label);
 
     if (addComment) {
-        QLabel *commentLabel = new QLabel(this->qhex);
+        QLabel *commentLabel = new QLabel(lqhex);
         if (style == "")
             style = "QLabel { background-color: rgb(150, 150, 150, 50); color: #ffffff; }";
         commentLabel->setStyleSheet(style);

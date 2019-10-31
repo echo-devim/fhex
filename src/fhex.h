@@ -50,7 +50,8 @@
 #define DEFAULT_UNPRINTABLE_CHAR "."
 #define CHUNK_SIZE 1024
 
-#define DIFF_STYLE "QLabel { background-color: rgba(200, 100, 100, 70); }"
+#define DIFF_CHANGED_STYLE "QLabel { background-color: rgba(200, 100, 100, 70); }"
+#define DIFF_ADDED_STYLE "QLabel { background-color: rgba(100, 200, 100, 70); }"
 
 class Fhex : public QMainWindow
 {
@@ -63,6 +64,7 @@ public:
 private:
     QApplication *app;
     QProgressBar *progressBar;
+    QHBoxLayout *qhexContainer;
     QCheckBox regexCheckBox;
     QFrame *searchBox;
     QComboBox *searchFormatOption;
@@ -92,7 +94,7 @@ private:
     bool loadFile(QString path);
     void keyPressEvent( QKeyEvent *event );
     void compare(QString filename);
-    void addFloatingLabel(qint64 offset, int len, QString text, QString style = "", bool addComment = false);
+    void addFloatingLabel(qint64 offset, int len, QString text, QString style = "", bool addComment = false, QHexEdit *lqhex = nullptr);
     void clearFloatingLabels();
     void findPatterns();
     void saveDataToFile(string path);

@@ -206,16 +206,77 @@ vector<Match *> HexEditor::findPatterns() {
     return res;
 }
 
-vector<pair<unsigned long, uint8_t>>  HexEditor::compareTo(HexEditor &hexEditor) {
-    vector<pair<unsigned long, uint8_t>> diff_bytes;
+pair<vector<DiffByte>, vector<DiffByte>> HexEditor::compareTo(HexEditor &hexEditor) {
+    vector<DiffByte> deleted_bytes;
+    vector<DiffByte> added_bytes;
+    unsigned long j = 0;
+    int step = 1024;
+    //Check who has more data (i.e. bytes added)
+    vector<uint8_t>& firstVec = this->getCurrentData();
+    vector<uint8_t>& secondVec = hexEditor.getCurrentData();
 
-    for (unsigned long i = 0; i < this->fileSize; i++) {
-        uint8_t byte_new = hexEditor.getCurrentData()[i];
-        if (this->getCurrentData()[i] != byte_new) {
-            diff_bytes.push_back(pair<unsigned long, uint8_t>(i, byte_new));
+    for (unsigned long i = 0; i < this->fileSize; i += (i+step > this->fileSize ? i+step-this->fileSize : step)) {
+
+        //Extract subvectors to compare
+        vector<uint8_t> vec1;
+        vector<uint8_t> vec2;
+
+        if (firstVec.begin() + i + step < firstVec.end())
+            vec1.insert(vec1.begin(), firstVec.begin() + i, firstVec.begin() + i + step);
+        else
+            vec1.insert(vec1.begin(), firstVec.begin() + i, firstVec.end());
+
+        if (secondVec.begin() + i + step < secondVec.end())
+            vec2.insert(vec2.begin(), secondVec.begin() + i, secondVec.begin() + i + step);
+        else
+            vec2.insert(vec2.begin(), secondVec.begin() + i, secondVec.end());
+
+        DiffUtils du;
+        // fill lookup table
+        du.lcs_length(vec1, vec2, vec1.size(), vec2.size());
+
+        // find difference by reading lookup table in top-down manner
+        du.diff(vec1, vec2, vec1.size(), vec2.size());
+
+
+        for (pair<unsigned long, uint8_t> p : du.deleted_bytes) {
+            cout << "Deleted char " << (char)p.first << " at index " << p.first << " + " << i << "\n";
+            deleted_bytes.push_back(DiffByte(p.first + i, p.second, DiffByte::Operation::DELETED));
         }
+        for (pair<unsigned long, uint8_t> p : du.added_bytes) {
+            cout << "Added char " << (char)p.first << " at index " << p.first << " + " << i << "\n";
+            added_bytes.push_back(DiffByte(p.first + i, p.second, DiffByte::Operation::ADDED));
+        }
+
         this->bytesRead = i;
     }
 
-    return diff_bytes;
+/*
+    for (unsigned long i = 0; i < this->fileSize; i++) {
+        uint8_t byte_new = hexEditor.getCurrentData()[j];
+        cout << "j = " << j << " , i = " << i << "\n" << flush;
+        cout << "check if " << this->getCurrentData()[i] << " != " << byte_new << "\n" << flush;
+        if (this->getCurrentData()[i] != byte_new) {
+            cout << "check if " << (char)hexEditor.getCurrentData()[first_diff_byte_index] << " != " << (char)this->getCurrentData()[i] << "\n" << flush;
+            if (hexEditor.getCurrentData()[first_diff_byte_index] != this->getCurrentData()[i]) {
+                diff_bytes.push_back(DiffByte(i, this->getCurrentData()[i], DiffByte::Operation::CHANGED));
+                cout << "Pushing back: " << (char)this->getCurrentData()[i] << " at offset " << i << "\n" << flush;
+            } else { //An insertion was made
+                j = first_diff_byte_index;
+                cout << "Insertion detected, j = " << first_diff_byte_index << "\n" << flush;
+                DiffByte b = diff_bytes.at(diff_bytes.size() - 1);
+                diff_bytes.pop_back();
+                b.op = DiffByte::Operation::ADDED;
+                diff_bytes.push_back(b);
+            }
+            cout << "next check if " << (char)this->getCurrentData()[j+1] << " != " << (char)hexEditor.getCurrentData()[i+1] << "\n" << flush;
+        } else {
+            cout << "first_diff_byte_index = " << j+1 << "\n" << flush;
+            first_diff_byte_index = j + 1;
+        }
+        j++;
+        this->bytesRead = i;
+    }
+*/
+    return pair<vector<DiffByte>, vector<DiffByte>>(deleted_bytes, added_bytes);
 }
