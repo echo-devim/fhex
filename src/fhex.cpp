@@ -66,7 +66,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
 
     QMenu *tools;
     tools = menuBar()->addMenu("&Tools");
-    QAction *hexDec = new QAction(QIcon::fromTheme("edit-find"), "&Hex<->Dec", this);
+    QAction *hexDec = new QAction(QIcon::fromTheme("gtk-convert"), "&Hex<->Dec", this);
     hexDec->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_H));
     tools->addAction(hexDec);
 
