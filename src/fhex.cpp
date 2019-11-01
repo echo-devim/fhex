@@ -63,6 +63,15 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     connect(openNewWindow, &QAction::triggered, this, &Fhex::on_menu_file_new_window_click);
     connect(find, &QAction::triggered, this, &Fhex::on_menu_find_click);
     connect(convert, &QAction::triggered, this, &Fhex::on_menu_convert_bytes_click);
+
+    QMenu *tools;
+    tools = menuBar()->addMenu("&Tools");
+    QAction *hexDec = new QAction(QIcon::fromTheme("edit-find"), "&Hex<->Dec", this);
+    hexDec->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_H));
+    tools->addAction(hexDec);
+
+    connect(hexDec, &QAction::triggered, this, &Fhex::on_menu_hex_dec_converter_click);
+
     /** End Menu Initialization **/
 
     QGridLayout *gridLayout = new QGridLayout;
@@ -663,4 +672,51 @@ bool Fhex::eventFilter(QObject* o, QEvent* e){
     } else {
         return QObject::eventFilter(o, e);
     }
+}
+
+void Fhex::on_menu_hex_dec_converter_click() {
+    QMainWindow *converterWindow = new QMainWindow(this);
+    converterWindow->setWindowIcon(this->windowIcon());
+    converterWindow->setWindowTitle("Fhex - Converter");
+    converterWindow->setFixedSize(300, 200);
+    QVBoxLayout *mainLayout =new QVBoxLayout(converterWindow);
+    QLabel *labelDec = new QLabel("Decimal:", converterWindow);
+    labelDec->setFixedHeight(20);
+    QLabel *labelHex = new QLabel("Hexadecimal:", converterWindow);
+    labelHex->setFixedHeight(20);
+    QPlainTextEdit *decText = new QPlainTextEdit(converterWindow);
+    decText->setFixedHeight(30);
+    QPlainTextEdit *hexText = new QPlainTextEdit(converterWindow);
+    hexText->setFixedHeight(30);
+    QPushButton *btnHexDec = new QPushButton("Hex to Dec", converterWindow);
+    QPushButton *btnDecHex = new QPushButton("Dec to Hex", converterWindow);
+    QHBoxLayout *buttonsLayout = new QHBoxLayout(converterWindow);
+    buttonsLayout->addWidget(btnHexDec);
+    buttonsLayout->addWidget(btnDecHex);
+    mainLayout->addWidget(labelDec);
+    mainLayout->addWidget(decText);
+    mainLayout->addWidget(labelHex);
+    mainLayout->addWidget(hexText);
+    mainLayout->addLayout(buttonsLayout);
+    QWidget *mainWidget = new QWidget();
+    mainWidget->setLayout(mainLayout);
+
+    connect(btnHexDec, &QPushButton::clicked, [hexText, decText]()
+    {
+        QString hext = hexText->toPlainText().replace("0x", "");
+        hext = hext.replace(" ", "");
+        if (hext != "") {
+            decText->setPlainText(QString::number(hext.toLong(nullptr, 16), 10));
+        }
+    });
+
+    connect(btnDecHex, &QPushButton::clicked, [hexText, decText]()
+    {
+        if (decText->toPlainText() != "") {
+            hexText->setPlainText(QString::number(decText->toPlainText().toLong(nullptr, 10), 16));
+        }
+    });
+
+    converterWindow->setCentralWidget(mainWidget);
+    converterWindow->show();
 }
