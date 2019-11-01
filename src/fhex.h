@@ -120,6 +120,7 @@ public slots:
     void on_menu_offset_list_click();
     void on_menu_new_file_click();
     bool eventFilter(QObject* o, QEvent* e);
+    void on_menu_hex_dec_converter_click();
 
 };
 
