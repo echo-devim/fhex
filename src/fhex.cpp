@@ -297,7 +297,7 @@ bool Fhex::loadFile(QString path) {
         this->statusBar.setText("Loading " + QString::number(val) + "%");
         this->repaint();
         this->app->processEvents();
-        std::this_thread::sleep_for(100ms);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     this->progressBar->setVisible(false);
 
@@ -343,7 +343,7 @@ void Fhex::compare(QString filename) {
         HexEditor newHexEditor;
         newHexEditor.loadFileAsync(filename.toStdString());
         while(!newHexEditor.isFileLoaded()) {
-            std::this_thread::sleep_for(100ms);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
         return this->hexEditor->compareTo(newHexEditor);
     });
