@@ -88,6 +88,8 @@ bool HexEditor::loadFile(string path) {
         return false;
     }
 
+    this->current_path = path;
+
     //clear current data
     this->current_data.clear();
     this->current_data.shrink_to_fit();
@@ -96,8 +98,8 @@ bool HexEditor::loadFile(string path) {
     this->current_data.insert(this->current_data.begin(), std::istreambuf_iterator<char>(ifs), {});
 
     this->fileSize = this->current_data.size();
+    this->bytesRead = this->fileSize;
 
-    this->current_path = path;
     return true;
 }
 
