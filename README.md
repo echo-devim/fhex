@@ -27,6 +27,7 @@ This project is based on **qhexedit2**. New features should be added in the futu
 * Basic text viewer for the selected text [`CTRL + T`]
 * Reload the current file [`F5`]
 * Compare two different files at byte level
+* Hex - Dec number converter [`CTRL + H`]
 * Pattern Matching Engine (see later)
 * Shortcuts for all these features
 
