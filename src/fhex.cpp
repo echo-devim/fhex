@@ -50,7 +50,11 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     QAction *menuOffsetList = new QAction(QIcon::fromTheme("find"), "&Show/Hide Offset List", this);
     menuOffsetList->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_O));
     edit->addAction(menuOffsetList);
+    QAction *menuBinaryChart = new QAction(QIcon::fromTheme("image"), "Show/Hide &Binary Chart", this);
+    menuBinaryChart->setShortcut(QKeySequence(Qt::Key_F1));
+    edit->addAction(menuBinaryChart);
 
+    connect(menuBinaryChart, &QAction::triggered, this, &Fhex::on_menu_binchart_click);
     connect(newFile, &QAction::triggered, this, &Fhex::on_menu_new_file_click);
     connect(menuOffsetList, &QAction::triggered, this, &Fhex::on_menu_offset_list_click);
     connect(findPatternsMenu, &QAction::triggered, this, &Fhex::on_menu_find_patterns_click);
@@ -85,12 +89,26 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     qhex->setSelectionColor(color_dark_yellow);
     qhex->setHighlightingColor(color_dark_violet);
 
-    gridLayout->addWidget(qhex, 0, 0, 1, 2);
+    gridLayout->addWidget(qhex, 1, 0, 1, 2);
 
     connect(this->qhex, &QHexEdit::handle_keyPressEvent, this, &Fhex::keyPressEvent);
     connect(this->qhex, &QHexEdit::handle_mouseClick, this, &Fhex::on_editor_mouse_click);
     connect(this->qhex->verticalScrollBar(), &QScrollBar::valueChanged, this, &Fhex::on_vertical_scrollbar_change);
     connect(this->qhex->horizontalScrollBar(), &QScrollBar::valueChanged, this, &Fhex::on_horizontal_scrollbar_change);
+
+
+    QChart *binChart = new QChart();
+    binChart->legend()->hide();
+    binChart->createDefaultAxes();
+    binChart->setTitle("Binary Chart - Byte Values View");
+    binChart->setTheme(QChart::ChartThemeDark);
+    binChart->setBackgroundBrush(QBrush(QRgb(CHART_BACKGROUND_COLOR)));
+    binChart->setMaximumHeight(500);
+    this->binChartView = new QChartView(binChart);
+    binChartView->setRenderHint(QPainter::Antialiasing);
+    binChartView->setVisible(false);
+
+    gridLayout->addWidget(binChartView, 0, 0, 1, 2);
 
     this->progressBar = new QProgressBar(this);
     this->progressBar->setRange(0, 100);
@@ -100,8 +118,8 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     this->progressBar->setVisible(false);
     gridLayout->addWidget(progressBar, 2, 0, 1, 2);
 
-    gridLayout->addWidget(&this->statusBar, 3, 0);
-    gridLayout->addWidget(&this->offsetBar, 3, 1, Qt::AlignRight);
+    gridLayout->addWidget(&this->statusBar, 4, 0);
+    gridLayout->addWidget(&this->offsetBar, 4, 1, Qt::AlignRight);
 
     searchBox = new QFrame(this);
     QFormLayout *searchBoxLayout = new QFormLayout(searchBox);
@@ -161,7 +179,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     searchBox->setStyleSheet("QFrame#container { border: 1px solid #bbbbbb; padding: 0px; margin: 0px;}");
     searchBox->setVisible(false);
 
-    gridLayout->addWidget(searchBox, 1, 0, 1, 2, Qt::AlignLeft);
+    gridLayout->addWidget(searchBox, 3, 0, 1, 2, Qt::AlignLeft);
 
     convertBox = new QFrame(this);
     QVBoxLayout *convertBoxLayout = new QVBoxLayout(convertBox);
@@ -304,10 +322,36 @@ bool Fhex::loadFile(QString path) {
     if (res) {
         this->statusBar.setText("File loaded (" + QString::number(this->hexEditor->fileSize / 1024) + " KB) in " + QString::number(duration / 1000.) + "s");
         this->setWindowTitle("Fhex - " + QString(this->hexEditor->getCurrentPath().c_str()));
+        loadBinChart();
     } else {
         this->statusBar.setText("Error while opening " + QString(this->hexEditor->getCurrentPath().c_str()));
     }
     return res;
+}
+
+void Fhex::loadBinChart() {
+    QLineSeries *series = new QLineSeries();
+    unsigned long step = 1;
+    if (this->hexEditor->fileSize > CHART_DENSITY)
+        step = this->hexEditor->fileSize / CHART_DENSITY;
+    for (unsigned long offset = 0; offset < this->hexEditor->fileSize; offset += step) {
+        series->append(offset, this->hexEditor->getCurrentData()[offset]);
+    }
+
+    QPen pen(QRgb(CHART_LINE_COLOR));
+    pen.setWidth(2);
+    series->setPen(pen);
+
+    connect(series, &QLineSeries::clicked, this, &Fhex::on_binchart_click);
+
+    binChartView->chart()->removeAllSeries();
+    binChartView->chart()->addSeries(series);
+    binChartView->chart()->createDefaultAxes();
+}
+
+void Fhex::on_binchart_click(const QPointF &p) {
+    this->qhex->setCursorPosition(static_cast<qint64>(p.x()) * 2);
+    this->qhex->ensureVisible();
 }
 
 void Fhex::on_menu_file_open_click() {
@@ -719,4 +763,8 @@ void Fhex::on_menu_hex_dec_converter_click() {
 
     converterWindow->setCentralWidget(mainWidget);
     converterWindow->show();
+}
+
+void Fhex::on_menu_binchart_click() {
+    this->binChartView->setVisible(!this->binChartView->isVisible());
 }

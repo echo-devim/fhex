@@ -39,6 +39,8 @@
 #include <QTextEdit>
 #include <QListWidget>
 #include <QListWidgetItem>
+#include <QtCharts>
+#include <QLineSeries>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -49,8 +51,13 @@
 
 #define DEFAULT_UNPRINTABLE_CHAR "."
 #define CHUNK_SIZE 1024
+#define CHART_DENSITY 1000 //A lower value implies a greater density
+#define CHART_LINE_COLOR 0xab621f
+#define CHART_BACKGROUND_COLOR 0x1c140a
 
 #define DIFF_STYLE "QLabel { background-color: rgba(200, 100, 100, 70); }"
+
+using namespace QtCharts;
 
 class Fhex : public QMainWindow
 {
@@ -61,6 +68,7 @@ public:
     ~Fhex();
 
 private:
+    QChartView *binChartView;
     QApplication *app;
     QProgressBar *progressBar;
     QCheckBox regexCheckBox;
@@ -96,6 +104,7 @@ private:
     void clearFloatingLabels();
     void findPatterns();
     void saveDataToFile(string path);
+    void loadBinChart();
 
 public slots:
     void on_editor_mouse_click();
@@ -121,6 +130,8 @@ public slots:
     void on_menu_new_file_click();
     bool eventFilter(QObject* o, QEvent* e);
     void on_menu_hex_dec_converter_click();
+    void on_binchart_click(const QPointF &p);
+    void on_menu_binchart_click();
 
 };
 
