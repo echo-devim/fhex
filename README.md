@@ -3,6 +3,7 @@
 This project is born with the aim to develop a lightweight, but useful tool. The reason is that the existing hex editors have some different limitations (e.g. too many dependencies, missing hex coloring features, etc.).
 
 ![screenshot](screenshot.png) 
+![screenshot2](screenshot2.png) 
 
 It is still under development, but actually it has the basic features to make it acceptable. 
 
@@ -27,8 +28,9 @@ This project is based on **qhexedit2**. New features should be added in the futu
 * Basic text viewer for the selected text [`CTRL + T`]
 * Reload the current file [`F5`]
 * Compare two different files at byte level
+* Browsable Binary Chart (see later for details) [`F1`]
 * Hex - Dec number converter [`CTRL + H`]
-* Pattern Matching Engine (see later)
+* Pattern Matching Engine (see later for details)
 * Shortcuts for all these features
 
 ## Pattern Matching Engine
@@ -53,6 +55,13 @@ Example that highlights urls with a basic regex and emails:
 }
 ```
 To activate pattern matching press `CTRL + P`
+
+## Binary Chart
+
+Fhex has the feature to chart the loaded binary file (*Note:* In order to compile the project, now you need also `qt5-charts` installed on the system).
+The y-axis range is between 0 and 255 (in hex 0x0 and 0xff, i.e. the byte values). The x-axis range is between 0 and the filesize.
+
+The chart plots the byte values of the binary file and let you focus only on the relevant sections. For example, if in a binary file there is an area full of null bytes, you can easily detect it from the chart.
 
 ### License
 GPL-3
