@@ -45,7 +45,7 @@ Example that highlights urls with a basic regex and emails:
             "message" : "Found url"
         },
         {
-            "regex" : "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
+            "regex" : "[A-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[A-Z0-9.-]+",
             "color" : "rgba(250,200,200,50)",
             "message" : "Found email address"
         }
