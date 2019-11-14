@@ -19,7 +19,7 @@ This project is based on **qhexedit2**. New features should be added in the futu
 * Find & Replace
 * Drag & Drop (*Hint:* Drag&Dropping two files the editor will diff them)
 * Overwrite the same file or create a new one  [`CTRL + S`]
-* Big files supported (up to 4GB, **Work In Progress**)
+* Big files supported
 * Goto offset  [`CTRL + G`]
 * Insert mode supported in order to insert new bytes instead to overwrite the existing one [`INS`]
 * Create new instances [`CTRL + N`]
