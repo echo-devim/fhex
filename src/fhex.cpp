@@ -528,6 +528,8 @@ void Fhex::on_replace_button_click() {
 
 void Fhex::on_replace_all_button_click() {
     this->qhex->setCursorPosition(0);
+    this->statusBar.setText("Replacing all occurences..please wait");
+    this->statusBar.repaint();
     long matches = 0;
     qint64 res = 1;
     bool isHex = (this->searchFormatOption->currentText() == "HEX");
