@@ -191,14 +191,14 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     connect(convertButton, &QPushButton::clicked, this, &Fhex::on_convert_button_click);
     convertBox->setVisible(false);
 
-    gridLayout->addWidget(convertBox, 0, 3);
+    gridLayout->addWidget(convertBox, 1, 3);
 
     listOffsets = new QListWidget(this);
     connect(listOffsets, &QListWidget::itemClicked, this, &Fhex::on_list_offset_item_click);
     listOffsets->setFixedWidth(200);
     listOffsets->setStyleSheet("QListWidget { background-color: #0a0600; color: #e3e3e3; font-size: 14px;};");
     listOffsets->setVisible(false);
-    gridLayout->addWidget(listOffsets, 0, 3);
+    gridLayout->addWidget(listOffsets, 1, 3);
 
     QWidget *mainWidget = new QWidget();
     mainWidget->setLayout(gridLayout);
@@ -234,7 +234,6 @@ void Fhex::on_list_offset_item_click(QListWidgetItem *item) {
 
 void Fhex::backgroundLoadTables(long index) {
     this->qhex->setData(reinterpret_cast<const char*>(this->hexEditor->getCurrentData().data()), this->hexEditor->fileSize);
-
     this->initialized_tables = true;
 }
 
