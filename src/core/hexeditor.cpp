@@ -3,7 +3,11 @@
 HexEditor::HexEditor()
 {
     this->fileSize = 0;
+#ifdef WINDOWS
+	string path = string(getenv("HOMEDRIVE")) + string(getenv("HOMEPATH")) + "\\fhex\\config.json";
+#else
     string path = string(getenv("HOME")) + "/fhex/config.json";
+#endif
     this->patternMatching = new PatternMatching(path);
 }
 

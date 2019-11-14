@@ -304,7 +304,11 @@ bool Fhex::loadFile(QString path) {
     this->clearFloatingLabels();
     this->statusBar.setText("Loading " + path);
     auto t1 = std::chrono::high_resolution_clock::now();
+#ifdef WINDOWS
+    bool res = this->hexEditor->loadFile(path.toStdString());
+#else
     bool res = this->hexEditor->loadFileAsync(path.toStdString());
+#endif
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
 
@@ -384,7 +388,11 @@ void Fhex::compare(QString filename) {
     future<vector<pair<unsigned long, uint8_t>>> fut_res = async([this, filename]()
     {
         HexEditor newHexEditor;
+#ifdef WINDOWS
+        newHexEditor.loadFile(filename.toStdString());
+#else
         newHexEditor.loadFileAsync(filename.toStdString());
+#endif
         while(!newHexEditor.isFileLoaded()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
