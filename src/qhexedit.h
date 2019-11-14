@@ -4,6 +4,9 @@
 #include <QAbstractScrollArea>
 #include <QPen>
 #include <QBrush>
+#include <QIODevice>
+#include <QFile>
+#include <QFileDevice>
 
 #include "chunks.h"
 #include "commands.h"
@@ -335,6 +338,7 @@ public:
     QByteArray data();
     void setData(const QByteArray &ba);
     void setData(const char *data, int len);
+    void setData(const QString fileName);
 
     void setHexCaps(const bool isCaps);
     bool hexCaps();
@@ -433,6 +437,7 @@ private:
     bool _editAreaIsAscii;                      // flag about the ascii mode edited
     int _addrDigits;                            // real no of addressdigits, may be > addressWidth
     bool _blink;                                // help get cursor blinking
+    QFile _fData;
     QBuffer _bData;                             // buffer, when setup with QByteArray
     Chunks *_chunks;                            // IODevice based access to data
     QTimer _cursorTimer;                        // for blinking cursor

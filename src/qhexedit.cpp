@@ -219,6 +219,7 @@ qint64 QHexEdit::cursorPosition()
     return _cursorPosition;
 }
 
+/* Legacy functions, don't use them. They are limited to integer sizes */
 void QHexEdit::setData(const QByteArray &ba)
 {
     _data = ba;
@@ -229,6 +230,12 @@ void QHexEdit::setData(const QByteArray &ba)
 void QHexEdit::setData(const char *data, int len) {
     _bData.setData(data, len);
     setData(_bData);
+}
+/* ---- */
+
+void QHexEdit::setData(const QString fileName) {
+    _fData.setFileName(fileName);
+    setData(_fData);
 }
 
 void QHexEdit::clear() {

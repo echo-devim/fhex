@@ -233,13 +233,7 @@ void Fhex::on_list_offset_item_click(QListWidgetItem *item) {
 }
 
 void Fhex::backgroundLoadTables(long index) {
-    int size = this->hexEditor->fileSize;
-    if (size < 0) { //if there is an integer overflows, because fileSize is bigger than INT_MAX (+2147483647)
-        size = INT_MAX - 1;
-        cout << "size is " << size << "\n" << flush;
-        this->statusBar.setText("Warning: The file is bigger than 2GB (current max supported size). Output is cut.");
-    }
-    this->qhex->setData(reinterpret_cast<const char*>(this->hexEditor->getCurrentData().data()), size);
+    this->qhex->setData(QString(this->hexEditor->getCurrentPath().c_str()));
     this->initialized_tables = true;
 }
 
