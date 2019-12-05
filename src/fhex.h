@@ -41,6 +41,7 @@
 #include <QListWidgetItem>
 #include <QtCharts>
 #include <QLineSeries>
+#include <QMessageBox>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -130,6 +131,7 @@ public slots:
     void on_menu_new_file_click();
     bool eventFilter(QObject* o, QEvent* e);
     void on_menu_hex_dec_converter_click();
+    void on_menu_escape_hex_click();
     void on_binchart_click(const QPointF &p);
     void on_menu_binchart_click();
 

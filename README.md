@@ -27,7 +27,8 @@ This project is based on **qhexedit2**. New features should be added in the futu
 * Reload the current file [`F5`]
 * Compare two different files at byte level
 * Browsable Binary Chart (see later for details) [`F1`]
-* Hex - Dec number converter [`CTRL + H`]
+* Hex - Dec number converter [`F2`]
+* Hex String escaper (e.g from 010203 to \x01\x02\x03) [`F3`]
 * Pattern Matching Engine (see later for details)
 * Shortcuts for all these features
 

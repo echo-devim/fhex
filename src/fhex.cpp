@@ -72,10 +72,14 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     QMenu *tools;
     tools = menuBar()->addMenu("&Tools");
     QAction *hexDec = new QAction(QIcon::fromTheme("gtk-convert"), "&Hex<->Dec", this);
-    hexDec->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_H));
+    hexDec->setShortcut(QKeySequence(Qt::Key_F2));
     tools->addAction(hexDec);
+    QAction *escapeHex = new QAction("&Escape Hex Bytes", this);
+    escapeHex->setShortcut(QKeySequence(Qt::Key_F3));
+    tools->addAction(escapeHex);
 
     connect(hexDec, &QAction::triggered, this, &Fhex::on_menu_hex_dec_converter_click);
+    connect(escapeHex, &QAction::triggered, this, &Fhex::on_menu_escape_hex_click);
 
     /** End Menu Initialization **/
 
@@ -740,8 +744,12 @@ void Fhex::on_menu_hex_dec_converter_click() {
     labelHex->setFixedHeight(20);
     QPlainTextEdit *decText = new QPlainTextEdit(converterWindow);
     decText->setFixedHeight(30);
+    decText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    decText->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     QPlainTextEdit *hexText = new QPlainTextEdit(converterWindow);
     hexText->setFixedHeight(30);
+    hexText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    hexText->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     QPushButton *btnHexDec = new QPushButton("Hex to Dec", converterWindow);
     QPushButton *btnDecHex = new QPushButton("Dec to Hex", converterWindow);
     QHBoxLayout *buttonsLayout = new QHBoxLayout(converterWindow);
@@ -773,6 +781,63 @@ void Fhex::on_menu_hex_dec_converter_click() {
 
     converterWindow->setCentralWidget(mainWidget);
     converterWindow->show();
+}
+
+
+void Fhex::on_menu_escape_hex_click() {
+    QMainWindow *escapeWindow = new QMainWindow(this);
+    escapeWindow->setWindowIcon(this->windowIcon());
+    escapeWindow->setWindowTitle("Fhex - Escape Hex");
+    escapeWindow->setFixedSize(300, 200);
+    QVBoxLayout *mainLayout =new QVBoxLayout(escapeWindow);
+    QLabel *labelHexString = new QLabel("Hex String:", escapeWindow);
+    labelHexString->setFixedHeight(20);
+    QLabel *labelEscapedString = new QLabel("Escaped String:", escapeWindow);
+    labelEscapedString->setFixedHeight(20);
+    QPlainTextEdit *hexStringText = new QPlainTextEdit(escapeWindow);
+    hexStringText->setFixedHeight(30);
+    hexStringText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    hexStringText->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    QPlainTextEdit *escapedText = new QPlainTextEdit(escapeWindow);
+    escapedText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    escapedText->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    escapedText->setFixedHeight(30);
+    QPushButton *btnEscapeHex = new QPushButton("Escape Hex String", escapeWindow);
+    QHBoxLayout *buttonsLayout = new QHBoxLayout(escapeWindow);
+    buttonsLayout->addWidget(btnEscapeHex);
+    mainLayout->addWidget(labelHexString);
+    mainLayout->addWidget(hexStringText);
+    mainLayout->addWidget(labelEscapedString);
+    mainLayout->addWidget(escapedText);
+    mainLayout->addLayout(buttonsLayout);
+    QWidget *mainWidget = new QWidget();
+    mainWidget->setLayout(mainLayout);
+
+    connect(btnEscapeHex, &QPushButton::clicked, [this, hexStringText, escapedText]()
+    {
+        QString hext = hexStringText->toPlainText().replace(" ", "");
+        if (hext != "") {
+            if (hext.length() % 2 == 0) {
+                QString escapedHex = "";
+                for (int i = 0; i < hext.length(); i += 2) {
+                    escapedHex += "\\x" + hext[i] + hext[i+1];
+                }
+                escapedText->setPlainText(escapedHex);
+            } else {
+                QMessageBox msgBox;
+                msgBox.setText("Hex String length is invalid. It is not divisible by 2.");
+                msgBox.setStandardButtons(QMessageBox::Ok);
+                msgBox.setDefaultButton(QMessageBox::Ok);
+                msgBox.setIcon(QMessageBox::Icon::Warning);
+                msgBox.setWindowTitle(this->windowTitle());
+                msgBox.setWindowIcon(this->windowIcon());
+                msgBox.exec();
+            }
+        }
+    });
+
+    escapeWindow->setCentralWidget(mainWidget);
+    escapeWindow->show();
 }
 
 void Fhex::on_menu_binchart_click() {
