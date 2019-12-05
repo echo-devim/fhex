@@ -18,6 +18,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     file = menuBar()->addMenu("&File");
     QAction *newFile = new QAction(QIcon::fromTheme("document-new"), "&New", this);
     QAction *openFile = new QAction(QIcon::fromTheme("folder-open"), "&Open", this);
+    openFile->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_O));
     QAction *diffFile = new QAction(QIcon::fromTheme("folder-open"), "&Diff..", this);
     QAction *saveFile = new QAction(QIcon::fromTheme("document-save"), "&Save", this);
     saveFile->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_S));
@@ -48,7 +49,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
     findPatternsMenu->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_P));
     edit->addAction(findPatternsMenu);
     QAction *menuOffsetList = new QAction(QIcon::fromTheme("find"), "&Show/Hide Offset List", this);
-    menuOffsetList->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_O));
+    menuOffsetList->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_L));
     edit->addAction(menuOffsetList);
     QAction *menuBinaryChart = new QAction(QIcon::fromTheme("image"), "Show/Hide &Binary Chart", this);
     menuBinaryChart->setShortcut(QKeySequence(Qt::Key_F1));
