@@ -109,6 +109,7 @@ private:
 
 public slots:
     void on_editor_mouse_click();
+    void on_editor_mouse_move();
     void on_menu_file_open_click();
     void on_menu_file_diff_click();
     void on_menu_file_save_click();

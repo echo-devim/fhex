@@ -309,6 +309,8 @@ signals:
     /*! This signal is emitted when the user does a mouse click on the hex editor area */
     void handle_mouseClick(QMouseEvent *event);
 
+    void handle_mouseMove(QMouseEvent *event);
+
 /*! \cond docNever */
 public:
     ~QHexEdit();

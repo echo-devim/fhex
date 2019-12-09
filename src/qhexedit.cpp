@@ -837,6 +837,7 @@ void QHexEdit::mouseMoveEvent(QMouseEvent * event)
         setCursorPosition(actPos);
         setSelection(actPos);
     }
+    emit handle_mouseMove(event);
 }
 
 void QHexEdit::mousePressEvent(QMouseEvent * event)
