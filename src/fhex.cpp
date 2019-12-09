@@ -254,7 +254,7 @@ void Fhex::loadTables(long index) {
 void Fhex::on_editor_mouse_click() {
     qint64 offset = this->qhex->cursorPosition() / 2;
     this->offsetBar.setText("File Offset: 0x" + QString::number(offset, 16) + " (" + QString::number(offset) + ") | "
-                            + "File Size: " + QString::number(this->hexEditor->fileSize / 1024) + " KB");
+                            + "File Size: " + QString::number(this->hexEditor->fileSize / 1024.0, 'f', 2) + " KB");
 }
 
 void Fhex::on_editor_mouse_move() {
@@ -264,7 +264,7 @@ void Fhex::on_editor_mouse_move() {
         this->offsetBar.setText("First Offset: 0x" + QString::number(offsets.first, 16) + " (" + QString::number(offsets.first) + ") | "
                                 + "Last Offset: 0x" + QString::number(offsets.second, 16) + " (" + QString::number(offsets.second) + ") | "
                                 + "Selected bytes: " + QString::number(offsets.second - offsets.first + 1) + " | "
-                                + "File Size: " + QString::number(this->hexEditor->fileSize / 1024) + " KB");
+                                + "File Size: " + QString::number(this->hexEditor->fileSize / 1024.0, 'f', 2) + " KB");
     }
 
 }
