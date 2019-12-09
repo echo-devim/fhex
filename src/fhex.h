@@ -106,6 +106,7 @@ private:
     void findPatterns();
     void saveDataToFile(string path);
     void loadBinChart();
+    void updateOffsetBar();
 
 public slots:
     void on_editor_mouse_click();
