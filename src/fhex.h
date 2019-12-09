@@ -107,6 +107,7 @@ private:
     void saveDataToFile(string path);
     void loadBinChart();
     void updateOffsetBar();
+    void updateOffsetBarWithSelection();
 
 public slots:
     void on_editor_mouse_click();

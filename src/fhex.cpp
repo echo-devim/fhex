@@ -258,11 +258,7 @@ void Fhex::updateOffsetBar() {
                             + "File Size: " + QString::number(this->hexEditor->fileSize / 1024.0, 'f', 2) + " KB");
 }
 
-void Fhex::on_editor_mouse_click() {
-    updateOffsetBar();
-}
-
-void Fhex::on_editor_mouse_move() {
+void Fhex::updateOffsetBarWithSelection() {
     pair<qint64,qint64> offsets = this->qhex->selectedOffsets();
     offsets.second = offsets.second - 1;
     if (offsets.second - offsets.first > 0) {
@@ -271,7 +267,13 @@ void Fhex::on_editor_mouse_move() {
                                 + "Selected bytes: " + QString::number(offsets.second - offsets.first + 1) + " | "
                                 + "File Size: " + QString::number(this->hexEditor->fileSize / 1024.0, 'f', 2) + " KB");
     }
+}
+void Fhex::on_editor_mouse_click() {
+    updateOffsetBar();
+}
 
+void Fhex::on_editor_mouse_move() {
+    updateOffsetBarWithSelection();
 }
 
 
@@ -285,6 +287,7 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
             this->loadTables();
         }
         updateOffsetBar();
+        updateOffsetBarWithSelection();
     }
 }
 
