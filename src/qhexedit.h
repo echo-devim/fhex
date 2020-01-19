@@ -367,6 +367,8 @@ public:
     int getPxCharWidth();
     int getPxCharHeight();
 
+    void setSelection(qint64 posStart, qint64 posEnd);
+
 protected:
     // Handle events
     void keyPressEvent(QKeyEvent *event);

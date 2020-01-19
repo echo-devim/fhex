@@ -1079,6 +1079,13 @@ void QHexEdit::setSelection(qint64 pos)
     }
 }
 
+void QHexEdit::setSelection(qint64 posStart, qint64 posEnd) {
+    if (posEnd > posStart) {
+        _bSelectionBegin = posStart;
+        _bSelectionEnd = posEnd;
+    }
+}
+
 qint64 QHexEdit::getSelectionBegin()
 {
     return _bSelectionBegin;

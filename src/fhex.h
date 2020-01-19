@@ -69,6 +69,8 @@ public:
     ~Fhex();
 
 private:
+    qint64 lastCursorPos = 0;
+    qint64 currentCursorPos = 0;
     QChartView *binChartView;
     QApplication *app;
     QProgressBar *progressBar;
