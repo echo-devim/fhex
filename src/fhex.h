@@ -65,7 +65,7 @@ class Fhex : public QMainWindow
     Q_OBJECT
 
 public:
-    Fhex(QWidget *parent = nullptr, QApplication *app = nullptr);
+    Fhex(QWidget *parent = nullptr, QApplication *app = nullptr, QString filepath = "");
     ~Fhex();
 
 private:

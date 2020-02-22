@@ -1,7 +1,7 @@
 #include "fhex.h"
 #include <QDebug>
 
-Fhex::Fhex(QWidget *parent, QApplication *app)
+Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     : QMainWindow(parent)
 {
     this->app = app;
@@ -211,6 +211,12 @@ Fhex::Fhex(QWidget *parent, QApplication *app)
 
     this->statusBar.setText("Fhex loaded");
     this->setCentralWidget(mainWidget);
+
+    //If a filepath was passed as argument, open it
+    if (filepath != "") {
+        this->loadFile(filepath);
+        this->loadTables();
+    }
 
 }
 
