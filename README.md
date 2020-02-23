@@ -1,4 +1,4 @@
-# Fhex - A Fucking HexEditor
+# Fhex - A Full-Featured HexEditor
 
 This project is born with the aim to develop a lightweight, but useful tool. The reason is that the existing hex editors have some different limitations (e.g. too many dependencies, missing hex coloring features, etc.).
 
