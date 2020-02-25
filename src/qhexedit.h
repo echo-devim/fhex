@@ -447,6 +447,7 @@ private:
     QTimer _cursorTimer;                        // for blinking cursor
     qint64 _cursorPosition;                     // absolute position of cursor, 1 Byte == 2 tics
     QRect _cursorRect;                          // physical dimensions of cursor
+    QRect _secondCursor;
     QByteArray _data;                           // QHexEdit's data, when setup with QByteArray
     QByteArray _dataShown;                      // data in the current View
     QByteArray _hexDataShown;                   // data in view, transformed to hex

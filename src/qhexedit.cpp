@@ -157,6 +157,7 @@ void QHexEdit::setCursorPosition(qint64 position)
     // 1. delete old cursor
     _blink = false;
     viewport()->update(_cursorRect);
+    viewport()->update(_secondCursor);
 
     // 2. Check, if cursor in range?
     if (position > (_chunks->size() * 2 - 1))
@@ -186,6 +187,7 @@ void QHexEdit::setCursorPosition(qint64 position)
     // 4. Immediately draw new cursor
     _blink = true;
     viewport()->update(_cursorRect);
+    viewport()->update(_secondCursor);
     emit currentAddressChanged(_bPosCurrent);
 }
 
@@ -973,8 +975,16 @@ void QHexEdit::paintEvent(QPaintEvent *event)
             }
             else
             {
-                if (_blink && hasFocus())
+                if (_blink && hasFocus()) {
                     painter.fillRect(_cursorRect, this->palette().color(QPalette::WindowText));
+                    if (_editAreaIsAscii) {
+                        int pos = (hexPositionInShowData % (_bytesPerLine*2));
+                        _secondCursor = QRect(_pxPosHexX - pxOfsX + ((pos*2 - pos/2) * _pxCharWidth), _pxCursorY + _pxCursorWidth, _pxCharWidth, _pxCursorWidth);
+                    } else {
+                        _secondCursor = QRect(_pxPosAsciiX - pxOfsX + (((hexPositionInShowData/2) % _bytesPerLine) * _pxCharWidth), _pxCursorY + _pxCursorWidth, _pxCharWidth, _pxCursorWidth);
+                    }
+                    painter.fillRect(_secondCursor, this->palette().color(QPalette::WindowText));
+                }
             }
 
             if (_editAreaIsAscii)
@@ -982,9 +992,8 @@ void QHexEdit::paintEvent(QPaintEvent *event)
                 // every 2 hex there is 1 ascii
                 int asciiPositionInShowData = hexPositionInShowData / 2;
                 int ch = (uchar)_dataShown.at(asciiPositionInShowData);
-                if (ch < ' ' || ch > '~')
-                    ch = '.';
-                painter.drawText(_pxCursorX - pxOfsX, _pxCursorY - 2, QChar(ch));
+                if ((ch >= ' ') && (ch <= '~'))
+                    painter.drawText(_pxCursorX - pxOfsX, _pxCursorY - 2, QChar(ch));
             }
             else
             {
@@ -1193,6 +1202,7 @@ void QHexEdit::updateCursor()
     else
         _blink = true;
     viewport()->update(_cursorRect);
+    viewport()->update(_secondCursor);
 }
 
 QPoint QHexEdit::getOffsetPos(qint64 offset) {
