@@ -23,17 +23,19 @@ jobs:
         qmake fhex.pro
     - name: Compile the project with make
       run: make
-    - name: Bundle the exe file with its DLLs
+    - name: Add required MinGW DLLs
       shell: cmd
-      # We will also need visual studio tools to find out the dependencies (dumpbin)
+      # We will also need visual studio tools here to find out the dependencies (dumpbin)
       run: |
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         python bundle-exe-with-dlls.py
-    - name: WindeployQt
+    - name: Add QT dependencies with WinDeploy
       shell: cmd
+      # Disabled angle and opengl since we don't do 3D graphics here (yet?)
       run: |
-        windeployqt %BUNDLE_DIR%\fhex.exe
-    - uses: actions/upload-artifact@v1
+        windeployqt %BUNDLE_DIR%\fhex.exe --no-angle --no-opengl-sw
+    - name: Upload the binary artifact
+      uses: actions/upload-artifact@v1
       with:
-        name: ${{env.BUNDLE_DIR}}
-        path: .
+        name: windows-build
+        path: ${{env.BUNDLE_DIR}}
