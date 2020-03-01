@@ -9,10 +9,17 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Install QT
-      run: choco install qt-sdk-windows-x64-mingw_opengl_seh
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        arch: win64_mingw73
+        modules: qtcharts
     - name: Call qmake
-      run: qmake fhex.pro
+      shell: cmd
+      # Inspired by https://github.com/jurplel/install-qt-action/blob/master/.github/workflows/test.yml
+      run: |
+        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        qmake fhex.pro
     - name: make
       run: make
     - uses: actions/upload-artifact@v1
