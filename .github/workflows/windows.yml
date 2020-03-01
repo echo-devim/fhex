@@ -3,6 +3,7 @@ name: Windows compilation
 on:
   push:
     branches: master
+  pull_request:
 
 jobs:
   build:
@@ -20,9 +21,15 @@ jobs:
       run: |
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         qmake fhex.pro
-    - name: make
+    - name: Compile the project with make
       run: make
+    - name: Bundle the exe file with its DLLs
+      shell: cmd
+      # We will also need visual studio tools to find out the dependencies (dumpbin)
+      run: |
+        call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        python bundle-exe-with-dlls.py
     - uses: actions/upload-artifact@v1
       with:
-        name: fhex-master
+        name: ${{env.BUNDLE_DIR}}
         path: .
