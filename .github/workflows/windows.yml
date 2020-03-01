@@ -11,8 +11,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install QT
       uses: jurplel/install-qt-action@v2
-    - name: Install MSYS2
-      uses: MSP-Greg/msys2-action@master # You might want to reference a commit hash instead
+    - name: Install MinGW 7.3
+      run: choco install mingw-w64 --version 7.3.0
+      # We use 7.3.0 since it's the supported one: https://doc.qt.io/qt-5/windows.html
     - name: Call qmake
       run: qmake fhex.pro
     - name: make
