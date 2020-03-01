@@ -1,0 +1,21 @@
+name: Windows compilation
+
+on:
+  push:
+    branches: master
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install QT
+      uses: jurplel/install-qt-action@v2
+    - name: Call qmake
+      run: qmake fhex.pro
+    - name: make
+      run: make
+    - uses: actions/upload-artifact@v1
+      with:
+        name: fhex-master
+        path: .
