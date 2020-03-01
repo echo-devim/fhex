@@ -10,10 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install QT
-      uses: jurplel/install-qt-action@v2
-    - name: Install MinGW 7.3
-      run: choco install mingw --version 7.3.0
-      # We use 7.3.0 since it's the supported one: https://doc.qt.io/qt-5/windows.html
+      run: choco install qt-sdk-windows-x64-mingw_opengl_seh
     - name: Call qmake
       run: qmake fhex.pro
     - name: make
