@@ -29,6 +29,10 @@ jobs:
       run: |
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         python bundle-exe-with-dlls.py
+    - name: WindeployQt
+      shell: cmd
+      run: |
+        windeployqt %BUNDLE_DIR%\fhex.exe
     - uses: actions/upload-artifact@v1
       with:
         name: ${{env.BUNDLE_DIR}}
