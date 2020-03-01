@@ -17,7 +17,7 @@ for file in os.listdir('release'):
 
 # Now, find out the dependencies the executable need and include them (unless they're from Windows)
 for file in os.listdir(dest_dir):
-	deps = os.popen("dumpbin /DEPENDENTS {}/{}".format(dest_dir, file))
+	deps = os.popen("dumpbin /DEPENDENTS {}\\{}".format(dest_dir, file))
 	print("Found dependencies")
 	print(deps)
 	deps = deps.readlines()
