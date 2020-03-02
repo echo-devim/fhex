@@ -1,6 +1,10 @@
 #ifndef HEXEDITOR_H
 #define HEXEDITOR_H
 
+#ifdef __MINGW32__
+#define WINDOWS
+#endif
+
 #include <vector>
 #include <istream>
 #include <fstream>
