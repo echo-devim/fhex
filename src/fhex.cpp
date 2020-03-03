@@ -453,6 +453,7 @@ void Fhex::compare(QString filename) {
     unsigned long changes = res.size();
     unsigned long start_offset = 0;
     unsigned long offset = 0;
+    int limit = MAX_DIFF_BYTES; //Show maximum 3000 different bytes
     QByteArray diff_bytes;
     for (pair<unsigned long, uint8_t> p : res) {
         if (offset == 0) {
@@ -461,16 +462,20 @@ void Fhex::compare(QString filename) {
             listOffsets->addItem("0x" + QString::number(start_offset, 16));
         }
         if (p.first - offset > 0) {
-            addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "Compared file:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
+            if (limit > 0)
+                addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "Compared file:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
             diff_bytes.clear();
             offset = 0;
         } else {
             offset++;
         }
         diff_bytes.push_back(static_cast<char>(p.second));
+        if (limit > 0)
+            limit--;
     }
     if (diff_bytes.size() > 0) {
-        addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "After:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
+        if (limit > 0)
+            addFloatingLabel(start_offset, static_cast<int>(diff_bytes.size()), "After:\r\n" + diff_bytes.toHex(' ') + "\r\n-----------\r\n" + diff_bytes, DIFF_STYLE);
         diff_bytes.clear();
     }
 
@@ -479,6 +484,17 @@ void Fhex::compare(QString filename) {
     else {
         this->statusBar.setText("Found " + QString::number(changes) + " different bytes");
         listOffsets->setVisible(true);
+    }
+
+    if (limit == 0) {
+        QMessageBox msgBox;
+        msgBox.setText("The output displays only the first " + QString::number(MAX_DIFF_BYTES) + " different bytes for performance reasons.");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.setIcon(QMessageBox::Icon::Warning);
+        msgBox.setWindowTitle(this->windowTitle());
+        msgBox.setWindowIcon(this->windowIcon());
+        msgBox.exec();
     }
 }
 

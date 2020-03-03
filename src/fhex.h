@@ -50,6 +50,7 @@
 #include "qhexedit.h"
 #include "core/hexeditor.h"
 
+#define MAX_DIFF_BYTES 3000
 #define DEFAULT_UNPRINTABLE_CHAR "."
 #define CHUNK_SIZE 1024
 #define CHART_DENSITY 1000 //A lower value implies a greater density
