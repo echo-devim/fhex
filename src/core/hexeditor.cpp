@@ -218,7 +218,12 @@ vector<Match *> HexEditor::findPatterns() {
 vector<pair<unsigned long, uint8_t>>  HexEditor::compareTo(HexEditor &hexEditor) {
     vector<pair<unsigned long, uint8_t>> diff_bytes;
 
-    for (unsigned long i = 0; i < this->fileSize; i++) {
+    //Find who has the smaller file size
+    unsigned long filesize = this->fileSize;
+    if (hexEditor.fileSize < filesize)
+        filesize = hexEditor.fileSize;
+
+    for (unsigned long i = 0; i < filesize; i++) {
         uint8_t byte_new = hexEditor.getCurrentData()[i];
         if (this->getCurrentData()[i] != byte_new) {
             diff_bytes.push_back(pair<unsigned long, uint8_t>(i, byte_new));
