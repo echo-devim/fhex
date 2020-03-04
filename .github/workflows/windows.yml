@@ -1,7 +1,8 @@
 name: Windows compilation
 
 on:
-  push:
+  release:
+    types: [published]
     branches: master
   pull_request:
 
