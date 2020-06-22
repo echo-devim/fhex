@@ -368,7 +368,7 @@ bool Fhex::loadFile(QString path) {
         this->setWindowTitle("Fhex - " + QString(this->hexEditor->getCurrentPath().c_str()));
         loadBinChart();
     } else {
-        this->statusBar.setText("Error while opening " + QString(this->hexEditor->getCurrentPath().c_str()));
+        this->statusBar.setText("Error while opening " + path);
     }
     return res;
 }

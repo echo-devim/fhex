@@ -9,11 +9,14 @@ int main(int argc, char *argv[])
     QString filepath = "";
 
     if (argc > 1) {
-        for (int i = 0; i < argc; i++) {
-            if (QFile::exists(argv[i])) {
-                filepath = argv[i];
+        for (int i = 1; i < argc; i++) {
+            filepath = argv[i];
+            if (QFile::exists(filepath)) {
                 Fhex *window = new Fhex(nullptr, &a, filepath);
                 window->show();
+            } else {
+                cout << "Error: Cannot load file '" << filepath.toStdString() << "'" << endl;
+                return 1;
             }
         }
     } else {
