@@ -77,9 +77,13 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     QAction *escapeHex = new QAction("&Escape Hex Bytes", this);
     escapeHex->setShortcut(QKeySequence(Qt::Key_F3));
     tools->addAction(escapeHex);
+    QAction *fasm = new QAction(QIcon::fromTheme("map-flat"), "&Assembler/Disassembler", this);
+    fasm->setShortcut(QKeySequence(Qt::Key_F4));
+    tools->addAction(fasm);
 
     connect(hexDec, &QAction::triggered, this, &Fhex::on_menu_hex_dec_converter_click);
     connect(escapeHex, &QAction::triggered, this, &Fhex::on_menu_escape_hex_click);
+    connect(fasm, &QAction::triggered, this, &Fhex::on_menu_fasm_click);
 
     /** End Menu Initialization **/
 
@@ -211,6 +215,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
 
     this->statusBar.setText("Fhex loaded");
     this->setCentralWidget(mainWidget);
+    this->fasm = nullptr;
 
     //If a filepath was passed as argument, open it
     if (filepath != "") {
@@ -223,6 +228,18 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
 Fhex::~Fhex()
 {
     delete this->hexEditor;
+    if (this->fasm != nullptr) {
+        delete this->fasm;
+    }
+}
+
+void Fhex::on_menu_fasm_click() {
+    if (fasm != nullptr) {
+        delete fasm;
+        this->fasm = nullptr;
+    }
+    fasm = new Fasm(this->qhex->selectedData());
+    fasm->show();
 }
 
 void Fhex::on_menu_offset_list_click() {

@@ -49,6 +49,7 @@
 
 #include "qhexedit.h"
 #include "core/hexeditor.h"
+#include "fasm.h"
 
 #define MAX_DIFF_BYTES 3000
 #define DEFAULT_UNPRINTABLE_CHAR "."
@@ -70,6 +71,7 @@ public:
     ~Fhex();
 
 private:
+    Fasm *fasm;
     qint64 lastCursorPos = 0;
     qint64 currentCursorPos = 0;
     QChartView *binChartView;
@@ -140,6 +142,7 @@ public slots:
     void on_menu_escape_hex_click();
     void on_binchart_click(const QPointF &p);
     void on_menu_binchart_click();
+    void on_menu_fasm_click();
 
 };
 

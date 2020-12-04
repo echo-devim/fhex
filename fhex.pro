@@ -27,6 +27,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 RC_ICONS = icon.ico
 
 SOURCES += \
+    src/fasm.cpp \
     src/chunks.cpp \
     src/commands.cpp \
     src/core/patternmatching.cpp \
@@ -36,6 +37,7 @@ SOURCES += \
     src/qhexedit.cpp
 
 HEADERS += \
+    src/fasm.h \
     src/chunks.h \
     src/commands.h \
     src/core/json.h \
@@ -43,3 +45,5 @@ HEADERS += \
         src/fhex.h \
     src/core/hexeditor.h \
     src/qhexedit.h
+
+QMAKE_LFLAGS += -lkeystone -lcapstone

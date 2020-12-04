@@ -3,9 +3,10 @@
 This project is born with the aim to develop a lightweight, but useful tool. The reason is that the existing hex editors have some different limitations (e.g. too many dependencies, missing hex coloring features, etc.).
 
 ![screenshot](screenshot.png) 
-![screenshot2](screenshot2.png) 
+![screenshot2](screenshot2.png)
+![screenshot3](screenshot3.png)
 
-This project is based on **qhexedit2**. New features should be added in the future, PRs are welcomed.
+This project is based on **qhexedit2**, **capstone** and **keystone** engines. New features could be added in the future, PRs are welcomed.
 
 ## Features
 
@@ -30,6 +31,8 @@ This project is based on **qhexedit2**. New features should be added in the futu
 * Hex - Dec number converter [`F2`]
 * Hex String escaper (e.g from 010203 to \x01\x02\x03) [`F3`]
 * Pattern Matching Engine (see later for details)
+* Disassebler based on Capstone Engine [`F4`]
+* Assembler based on Keystone Engine [`F4`]
 * Shortcuts for all these features
 
 ## Pattern Matching Engine
