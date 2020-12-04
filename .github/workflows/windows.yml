@@ -4,6 +4,12 @@ on:
   release:
     types: [published]
     branches: master
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
   pull_request:
 
 jobs:
