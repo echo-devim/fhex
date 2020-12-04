@@ -15,11 +15,15 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: [3.6]
+        exclude:
+          - os: windows-latest
+            python-version: 3.9
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
-      with:
-          python-version: '3.6'
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       with:
