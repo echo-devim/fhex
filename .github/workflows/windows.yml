@@ -38,7 +38,7 @@ jobs:
       # We will also need visual studio tools here to find out the dependencies (dumpbin)
       run: |
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        python bundle-exe-with-dlls.py
+        python36 bundle-exe-with-dlls.py
     - name: Add QT dependencies with WinDeploy
       shell: cmd
       # Disabled angle and opengl since we don't do 3D graphics here (yet?)
