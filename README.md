@@ -20,7 +20,6 @@ This project is based on **qhexedit2**, **capstone** and **keystone** engines. N
 * Find & Replace
 * Drag & Drop (*Hint:* Drag&Dropping two files the editor will diff them)
 * Overwrite the same file or create a new one  [`CTRL + S`]
-* Big files supported (**Only on Linux**, Windows has still several limitations on the supported file size)
 * Goto offset  [`CTRL + G`]
 * Insert mode supported in order to insert new bytes instead to overwrite the existing one [`INS`]
 * Create new instances [`CTRL + N`]
