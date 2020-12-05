@@ -18,7 +18,7 @@ This project is based on **qhexedit2**, **capstone** and **keystone** engines. N
 * Zeroing all the selected bytes [`CTRL + D`]
 * Undo & Redo [`CTRL + Z` and `CTRL + Y`]
 * Find & Replace
-* Drag & Drop (*Hint:* Drag&Dropping two files the editor will diff them)
+* Drag & Drop (*Hint:* Drag&Drop two files to diff them)
 * Overwrite the same file or create a new one  [`CTRL + S`]
 * Goto offset  [`CTRL + G`]
 * Insert mode supported in order to insert new bytes instead to overwrite the existing one [`INS`]
