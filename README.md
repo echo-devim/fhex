@@ -10,14 +10,13 @@ This project is based on **qhexedit2**, **capstone** and **keystone** engines. N
 
 ## Features
 
-* Search and replace (UTF-8, HEX, regex, inverse search supported) [`CTRL + F`]
+* Search and replace (UTF-8, HEX, regex, reverse search supported) [`CTRL + F`]
 * Colored output (white spaces, ASCII characters, 0xFF, UTF-8 and NULL bytes have different colors)
 * Interpret selected bytes as integer, long, unsigned long [`CTRL + B`]
 * Copy & Paste  [`CTRL + C` and  `CTRL + V`]
 * Copy selected unicode characters [`CTRL + Space`]
 * Zeroing all the selected bytes [`CTRL + D`]
 * Undo & Redo [`CTRL + Z` and `CTRL + Y`]
-* Find & Replace
 * Drag & Drop (*Hint:* Drag&Drop two files to diff them)
 * Overwrite the same file or create a new one  [`CTRL + S`]
 * Goto offset  [`CTRL + G`]
