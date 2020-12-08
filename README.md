@@ -34,27 +34,29 @@ This project is based on **qhexedit2**, **capstone** and **keystone** engines. N
 * Shortcuts for all these features
 
 ## Pattern Matching Engine
-Fhex can read a configuration file (from `~/fhex/config.json`) in JSON format with a list of regex to highlight and a comment/label to add close to the matches.
+Fhex can load at startup a configuration file (from `~/fhex/config.json`) in JSON format with a list of strings or bytes to highlight and a comment/label to add close to the matches.
 
-Example that highlights urls with a basic regex and emails:
+Examples:
 ```json
 {
     "PatternMatching":
     [
         {
-            "regex" : "www.[a-zA-Z0-9].",
+            "string" : "://www.",
             "color" : "rgba(250,200,200,50)",
             "message" : "Found url"
         },
         {
-            "regex" : "[A-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[A-Z0-9.-]+",
+            "bytes" : "414243",
             "color" : "rgba(250,200,200,50)",
-            "message" : "Found email address"
+            "message" : "Found ABC"
         }
     ]
 }
 ```
 To activate pattern matching press `CTRL + P`
+At the end, Fhex will show also an offset list with all the result references.
+**Note:** Labels with comments are added only if the window is maximized, if labels are not displayed correctly please try to run pattern matching again.
 
 ## Binary Chart
 
