@@ -8,6 +8,8 @@
 #include <codecvt>
 #include "json.h"
 
+#define MAX_PATTERN_RESULTS 100
+
 using json = nlohmann::json;
 using namespace std;
 
@@ -36,7 +38,7 @@ class PatternMatching
 {
 public:
     PatternMatching(string path);
-    vector<Match *> hasMatches(wstring pattern);
+    vector<Match *> hasMatches(vector<uint8_t> &content);
 private:
     json jconfig;
 };

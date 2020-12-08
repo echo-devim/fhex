@@ -327,20 +327,32 @@ void Fhex::on_menu_find_patterns_click() {
 
 void Fhex::findPatterns() {
     clearFloatingLabels();
+    this->listOffsets->clear();
     this->statusBar.setText("Searching patterns..");
     this->statusBar.repaint();
-    long patterns = 0;
+    unsigned long patterns = 0;
     vector<Match *> matches = this->hexEditor->findPatterns();
+    size_t size = matches.size();
     for (Match *m : matches) {
+        if (patterns > MAX_PATTERN_RESULTS) {
+            break;
+        }
         // render highlight area
         QString style("QLabel { color: #fbfbfb; padding: 2px; background-color: ");
         style += m->color.c_str();
         style += " };";
-        addFloatingLabel(m->index, m->length, m->message.c_str(), style, true);
+        //Show comments only if the windows is maximized, otherwise probably we don't have enough space
+        addFloatingLabel(m->index, m->length, m->message.c_str(), style, this->windowState().testFlag(Qt::WindowMaximized));
+        this->listOffsets->addItem("0x" + QString::number(m->index, 16));
         delete m;
         patterns++;
     }
-    this->statusBar.setText("Found " + QString::number(patterns) + " patterns");
+    if (size > MAX_PATTERN_RESULTS) {
+        this->statusBar.setText("Found " + QString::number(size) + " patterns. Limit exceeded, showing labels only for first " + QString::number(MAX_PATTERN_RESULTS));
+    } else {
+        this->statusBar.setText("Found " + QString::number(patterns) + " patterns");
+    }
+    this->listOffsets->setVisible(true);
 }
 
 void Fhex::on_menu_find_click() {
@@ -755,8 +767,8 @@ void Fhex::addFloatingLabel(qint64 offset, int len, QString text, QString style,
             style = "QLabel { background-color: rgb(150, 150, 150, 50); color: #ffffff; }";
         commentLabel->setStyleSheet(style);
         commentLabel->setText(text);
-        commentLabel->move(p.x() + (this->width() / 2), p.y());
-        commentLabel->adjustSize();
+        commentLabel->move(p.x() + (this->width() / 2.5), p.y());
+        commentLabel->resize(this->qhex->getPxCharWidth() * text.size(), this->qhex->getPxCharHeight());
         commentLabel->show();
         this->floatingLabels.push_back(commentLabel);
     }
