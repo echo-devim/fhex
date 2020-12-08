@@ -159,17 +159,6 @@ void HexEditor::saveDataToFileAsync(string path) {
     async(&HexEditor::saveDataToFile, this, path);
 }
 
-vector<Match *> HexEditor::findPatternsInChunk(unsigned long start, unsigned long len) {
-    wstring str = getCurrentDataAsWString(start, len);
-
-    vector<Match *> matches = this->patternMatching->hasMatches(move(str));
-    // Update the relative match positions to the absolute position
-    for (Match *m : matches) {
-        m->index += start;
-    }
-    return matches;
-}
-
 string HexEditor::fromUintVectorToPrintableString(vector<uint8_t> &vec, long start, long len) {
     stringstream ss;
     vector<uint8_t>::const_iterator it;
@@ -187,32 +176,7 @@ string HexEditor::fromUintVectorToPrintableString(vector<uint8_t> &vec, long sta
 }
 
 vector<Match *> HexEditor::findPatterns() {
-    unsigned long chunkSize = fileSize / this->task_num;
-    unsigned long lastChunkSize = fileSize % this->task_num;
-
-    int i;
-    int b_offset = 0;
-    for (i = 0; i < this->task_num; i++) {
-        if ((i*chunkSize) > 512)
-            b_offset = 512;
-        pattern_tasks.push_back(async([this, chunkSize, i, b_offset](){ return this->findPatternsInChunk(chunkSize * i - b_offset, chunkSize + b_offset); }));
-    }
-
-    // Load the last chunk
-    if (lastChunkSize > 0) {
-        pattern_tasks.push_back(async([this, chunkSize, lastChunkSize, i, b_offset](){ return this->findPatternsInChunk(chunkSize * i - b_offset, lastChunkSize + b_offset); }));
-    }
-
-    vector<Match*> res;
-    for (auto& ptask : pattern_tasks) {
-        vector<Match*> data = ptask.get();
-        res.insert(res.end(), data.begin(), data.end());
-    }
-
-    this->pattern_tasks.clear();
-    this->pattern_tasks.shrink_to_fit();
-
-    return res;
+    return this->patternMatching->hasMatches(this->current_data);
 }
 
 vector<pair<unsigned long, uint8_t>>  HexEditor::compareTo(HexEditor &hexEditor) {
