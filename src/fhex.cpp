@@ -85,6 +85,13 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     connect(escapeHex, &QAction::triggered, this, &Fhex::on_menu_escape_hex_click);
     connect(fasm, &QAction::triggered, this, &Fhex::on_menu_fasm_click);
 
+    QMenu *help;
+    help = menuBar()->addMenu("&Help");
+    QAction *about = new QAction("&About", this);
+    help->addAction(about);
+
+    connect(about, &QAction::triggered, this, &Fhex::on_menu_about_click);
+
     /** End Menu Initialization **/
 
     QGridLayout *gridLayout = new QGridLayout;
@@ -231,6 +238,30 @@ Fhex::~Fhex()
     if (this->fasm != nullptr) {
         delete this->fasm;
     }
+}
+
+void Fhex::on_menu_about_click() {
+    QMainWindow *newWindow = new QMainWindow(this);
+    newWindow->setWindowTitle("Fhex - About");
+    QLabel *title = new QLabel("Full-featured Hex Editor");
+    QLabel *desc = new QLabel("Free and Open Source");
+    QLabel *author = new QLabel("https://github.com/echo-devim/fhex");
+    title->setStyleSheet("QLabel { font-size: 35px; }");
+    desc->setStyleSheet("QLabel { font-size: 25px; }");
+    author->setStyleSheet("QLabel { font-size: 20px; }");
+    newWindow->setMinimumWidth(400);
+    newWindow->setMinimumHeight(200);
+    title->setFixedWidth(newWindow->width());
+    desc->setFixedWidth(newWindow->width());
+    author->setFixedWidth(newWindow->width());
+    QGridLayout *grid = new QGridLayout;
+    grid->addWidget(title, 0, 0, 1, 0, Qt::AlignCenter);
+    grid->addWidget(desc, 1, 0, 1, 0, Qt::AlignCenter);
+    grid->addWidget(author, 2, 0, 1, 0, Qt::AlignCenter);
+    QWidget *mainWidget = new QWidget();
+    mainWidget->setLayout(grid);
+    newWindow->setCentralWidget(mainWidget);
+    newWindow->show();
 }
 
 void Fhex::on_menu_fasm_click() {

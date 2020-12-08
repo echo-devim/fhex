@@ -143,6 +143,7 @@ public slots:
     void on_binchart_click(const QPointF &p);
     void on_menu_binchart_click();
     void on_menu_fasm_click();
+    void on_menu_about_click();
 
 };
 
