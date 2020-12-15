@@ -47,12 +47,13 @@ bool HexEditor::loadFileAsync(string path) {
 
     ifstream::pos_type pos = ifs.tellg(); //file length
     this->fileSize = static_cast<unsigned long>(pos);
+    this->current_data.reserve(this->fileSize);
 
     unsigned long chunkSize = fileSize / this->task_num;
     unsigned long lastChunkSize = fileSize % this->task_num;
 
     this->bytesRead = 0;
-    int i;
+    unsigned int i;
     for (i = 0; i < this->task_num; i++) {
         tasks.push_back(async([this, path, chunkSize, i](){ return this->loadFilePart(path, chunkSize * i, chunkSize); }));
     }

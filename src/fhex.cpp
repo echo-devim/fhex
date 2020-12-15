@@ -293,7 +293,11 @@ void Fhex::on_list_offset_item_click(QListWidgetItem *item) {
 }
 
 void Fhex::backgroundLoadTables(long index) {
-    this->qhex->setData(QString(this->hexEditor->getCurrentPath().c_str()));
+    if (this->hexEditor->fileSize > 2147483647) {
+        this->qhex->setData(QString(this->hexEditor->getCurrentPath().c_str()));
+    } else {
+        this->qhex->setData(reinterpret_cast<const char*>(this->hexEditor->getCurrentData().data()), this->hexEditor->fileSize);
+    }
     this->initialized_tables = true;
 }
 
@@ -561,12 +565,8 @@ void Fhex::compare(QString filename) {
 void Fhex::on_menu_file_save_click() {
     this->statusBar.setText("Saving file..");
     if (this->qhex->isModified()) {
-        if (this->qhex->data().size() == this->hexEditor->fileSize) {
-            saveDataToFile(this->hexEditor->getCurrentPath());
-            this->statusBar.setText("File updated!");
-        } else {
-            on_menu_file_save_as_click();
-        }
+        saveDataToFile(this->hexEditor->getCurrentPath());
+        this->statusBar.setText("File updated!");
     } else {
         this->statusBar.setText("No changes were made");
     }
