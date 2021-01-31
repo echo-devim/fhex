@@ -1,19 +1,25 @@
 #include "hexeditor.h"
 
-HexEditor::HexEditor()
+/*
+ * REMOVED HARDCODED PATTERNS FILE PATH,
+ * ADDED patternsFile TO MAKE SIGNATURE DIFFERENT
+ * NOT SURE IF THIS IS THE BEST APPROACH BUT WORKS :)
+ */
+
+HexEditor::HexEditor(string patternsFile)
 {
     this->fileSize = 0;
-#ifdef WINDOWS
-	string path = string(getenv("HOMEDRIVE")) + string(getenv("HOMEPATH")) + "\\fhex\\config.json";
-#else
-    string path = string(getenv("HOME")) + "/fhex/config.json";
-#endif
-    this->patternMatching = new PatternMatching(path);
+    this->patternMatching = new PatternMatching(patternsFile);
 }
 
-HexEditor::HexEditor(string path)
+/*
+ * ADDED patternsFile TO MAKE SIGNATURE DIFFERENT
+ * NOT SURE IF THIS IS THE BEST APPROACH BUT WORKS :)
+ */
+
+HexEditor::HexEditor(string path, string patternsFile)
 {
-    HexEditor();
+    (HexEditor(patternsFile));
     this->loadFileAsync(path);
 }
 
