@@ -1,5 +1,7 @@
 #include "fhex.h"
 #include <QDebug>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     : QMainWindow(parent)
@@ -7,11 +9,93 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     this->app = app;
     this->setWindowTitle("Fhex");
     this->setWindowIcon(QIcon("/usr/share/icons/fhex.png"));
-    this->setMinimumSize(800, 500);
+
+    /**
+     * LOAD WINDOW SIZE FROM FILE SETTINGS
+    **/
+    string homePath = "";
+
+#ifdef WINDOWS
+    homePath = string(getenv("HOMEDRIVE")) + string(getenv("HOMEPATH")) + "\\AppData\\Local\\";
+    settingsPath = homePath + "\\fhex\\";
+#else
+    homePath = string(getenv("HOME"));
+    settingsPath = homePath + "/.fhex/";
+#endif
+
+    settingsFile = settingsPath + "settings.json";
+    std::ifstream configFile(settingsFile);
+
+    if (!configFile.good()) {
+        cerr << "The file " << settingsFile << " is not accessible." << endl;
+    } else {
+        try {
+            configFile >> this->jconfig;
+        } catch (exception &e) {
+            cerr << "Exception occurred while parsing json configuration file:" << endl << e.what() << endl;
+        }
+    }
+    QRect screenSize = QDesktopWidget().availableGeometry(this);
+
+    /*
+     * DEFAULTS
+     */
+
+    // Window: Default is half of screen size & centered on screen
+    int width = screenSize.width() * 0.5f;
+    int height = screenSize.height() * 0.5f;
+    int x_position = screenSize.width() / 2 - width / 2;
+    int y_position = screenSize.height() / 2 - height / 2;
+    bool maximized = false;
+
+    // Pattern
+    patternsEnabled = false;
+
+    // Look for size & position values to overwrite
+    if (!jconfig.is_null()) {
+        if (!jconfig["WindowSettings"]["width"].is_null()) {
+            width = jconfig["WindowSettings"]["width"].get<int>();
+        }
+        if (!jconfig["WindowSettings"]["height"].is_null()) {
+            height = jconfig["WindowSettings"]["height"].get<int>();
+        }
+        if (!jconfig["WindowSettings"]["x_position"].is_null()) {
+            x_position = jconfig["WindowSettings"]["x_position"].get<int>();
+        }
+        if (!jconfig["WindowSettings"]["y_position"].is_null()) {
+            y_position = jconfig["WindowSettings"]["y_position"].get<int>();
+        }
+        if (!jconfig["WindowSettings"]["maximized"].is_null()) {
+            maximized = jconfig["WindowSettings"]["maximized"].get<bool>();
+        }
+        if (!jconfig["Patterns"]["file"].is_null()) {
+            patternsFile = jconfig["Patterns"]["file"].get<string>();
+        }
+        if (!jconfig["Patterns"]["enabled"].is_null()) {
+            patternsEnabled = jconfig["Patterns"]["enabled"].get<bool>();
+        }
+    }
+
+    /**
+     * APPLY WINDOW SIZE
+    **/
+
+    this->move(x_position, y_position);
+    this->resize(width, height);
+    if (maximized) {
+        this->setWindowState(Qt::WindowMaximized);
+    }
 
     this->prev_vscrollbar_value = 0;
     this->prev_hscrollbar_value = 0;
-    this->hexEditor = new HexEditor();
+
+    if (patternsEnabled) {
+        // If Patterns enabled
+        this->hexEditor = new HexEditor(patternsFile);
+    } else {
+        // No Patterns
+        this->hexEditor = new HexEditor();
+    }
 
     /** Menu Initialization **/
     QMenu *file;
@@ -25,12 +109,19 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     QAction *saveNewFile = new QAction(QIcon::fromTheme("document-save-as"), "&Save as ..", this);
     QAction *openNewWindow = new QAction(QIcon::fromTheme("window-new"), "&New Window", this);
     openNewWindow->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_N));
+    // Add quit action (CTRL+Q) as not every Window Manager provides an X button
+    QAction *quit = new QAction(QIcon::fromTheme("window-quit"), "&Quit", this);
+    quit->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_Q));
+
     file->addAction(newFile);
     file->addAction(openFile);
     file->addAction(diffFile);
     file->addAction(saveFile);
     file->addAction(saveNewFile);
     file->addAction(openNewWindow);
+    file->addSeparator();
+    file->addAction(quit);
+
     QMenu *edit;
     edit = menuBar()->addMenu("&Edit");
     QAction *find = new QAction(QIcon::fromTheme("edit-find"), "&Find", this);
@@ -45,9 +136,17 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     QAction *openTextViewer = new QAction(QIcon::fromTheme("text-field"), "&Open Text Viewer", this);
     openTextViewer->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_T));
     edit->addAction(openTextViewer);
-    QAction *findPatternsMenu = new QAction(QIcon::fromTheme("find"), "&Find Patterns", this);
-    findPatternsMenu->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_P));
-    edit->addAction(findPatternsMenu);
+
+    // Added
+    QAction *openPatternsMenu = new QAction(QIcon::fromTheme("folder-open"), "&Open Pattern Definition", this);
+    openPatternsMenu->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_D));
+    edit->addAction(openPatternsMenu);
+
+    // Toggle patterns display On/Off
+    QAction *togglePatternsMenu = new QAction(QIcon::fromTheme("find"), "&Toggle Patterns", this);
+    togglePatternsMenu->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_P));
+    edit->addAction(togglePatternsMenu);
+
     QAction *menuOffsetList = new QAction(QIcon::fromTheme("find"), "&Show/Hide Offset List", this);
     menuOffsetList->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_L));
     edit->addAction(menuOffsetList);
@@ -58,7 +157,13 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     connect(menuBinaryChart, &QAction::triggered, this, &Fhex::on_menu_binchart_click);
     connect(newFile, &QAction::triggered, this, &Fhex::on_menu_new_file_click);
     connect(menuOffsetList, &QAction::triggered, this, &Fhex::on_menu_offset_list_click);
-    connect(findPatternsMenu, &QAction::triggered, this, &Fhex::on_menu_find_patterns_click);
+
+    // Toggle patterns display On/Off
+    connect(togglePatternsMenu, &QAction::triggered, this, &Fhex::on_menu_toggle_patterns_click);
+
+    // Added
+    connect(openPatternsMenu, &QAction::triggered, this, &Fhex::on_menu_open_patterns_click);
+
     connect(openTextViewer, &QAction::triggered, this, &Fhex::on_menu_open_text_viewer_click);
     connect(gotoOffset, &QAction::triggered, this, &Fhex::on_menu_goto_offset_click);
     connect(diffFile, &QAction::triggered, this, &Fhex::on_menu_file_diff_click);
@@ -66,6 +171,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     connect(saveFile, &QAction::triggered, this, &Fhex::on_menu_file_save_click);
     connect(saveNewFile, &QAction::triggered, this, &Fhex::on_menu_file_save_as_click);
     connect(openNewWindow, &QAction::triggered, this, &Fhex::on_menu_file_new_window_click);
+    connect(quit, &QAction::triggered, this, &Fhex::on_menu_file_quit_click);
     connect(find, &QAction::triggered, this, &Fhex::on_menu_find_click);
     connect(convert, &QAction::triggered, this, &Fhex::on_menu_convert_bytes_click);
 
@@ -228,6 +334,11 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     if (filepath != "") {
         this->loadFile(filepath);
         this->loadTables();
+
+        // IF PATTERNS ENABLED
+        if (patternsEnabled) {
+            findPatterns();
+        }
     }
 
 }
@@ -242,22 +353,37 @@ Fhex::~Fhex()
 
 void Fhex::on_menu_about_click() {
     QMainWindow *newWindow = new QMainWindow(this);
-    newWindow->setWindowTitle("Fhex - About");
-    QLabel *title = new QLabel("Full-featured Hex Editor");
-    QLabel *desc = new QLabel("Free and Open Source");
-    QLabel *author = new QLabel("https://github.com/echo-devim/fhex");
-    title->setStyleSheet("QLabel { font-size: 35px; }");
-    desc->setStyleSheet("QLabel { font-size: 25px; }");
-    author->setStyleSheet("QLabel { font-size: 20px; }");
+    newWindow->setWindowTitle("About");
+    newWindow->setWindowFlags(Qt::Dialog | Qt::Drawer);
+    newWindow->layout()->setSizeConstraint( QLayout::SetFixedSize );
     newWindow->setMinimumWidth(400);
     newWindow->setMinimumHeight(200);
+    QLabel *appName = new QLabel("Fhex");
+    QLabel *version = new QLabel(this->version.c_str());
+    QLabel *title = new QLabel("Full-featured Hex Editor");
+    QLabel *desc = new QLabel("Free and Open Source");
+    QLabel *author = new QLabel("URL: <a href=\"https://github.com/echo-devim/fhex\">https://github.com/echo-devim/fhex</a>");
+    QLabel *libraries = new QLabel("Libraries:");
+    QLabel *libCapstone = new QLabel("Disassembler: <a href=\"https://www.capstone-engine.org\">https://www.capstone-engine.org</a>");
+    QLabel *libKeystone = new QLabel("Assembler: <a href=\"https://www.keystone-engine.org\">https://www.keystone-engine.org</a>");
+    QLabel *libJSON = new QLabel("JSON: <a href=\"https://json.nlohmann.me\">https://json.nlohmann.me</a>");
+    appName->setStyleSheet("QLabel { font-size: 25px; }");
+    libraries->setStyleSheet("QLabel { font-weight: bold; }");
+    appName->setFixedWidth(newWindow->width());
     title->setFixedWidth(newWindow->width());
     desc->setFixedWidth(newWindow->width());
     author->setFixedWidth(newWindow->width());
+    author->setOpenExternalLinks(true);
     QGridLayout *grid = new QGridLayout;
-    grid->addWidget(title, 0, 0, 1, 0, Qt::AlignCenter);
-    grid->addWidget(desc, 1, 0, 1, 0, Qt::AlignCenter);
-    grid->addWidget(author, 2, 0, 1, 0, Qt::AlignCenter);
+    grid->addWidget(appName, 0, 0, 1, 0, Qt::AlignLeft);
+    grid->addWidget(version, 1, 0, 1, 0, Qt::AlignLeft);
+    grid->addWidget(title, 2, 0, 1, 0, Qt::AlignLeft);
+    grid->addWidget(desc, 3, 0, 1, 0, Qt::AlignLeft);
+    grid->addWidget(author, 4, 0, 1, 0, Qt::AlignLeft);
+    grid->addWidget(libraries, 5, 0, 1, 0, Qt::AlignLeft);
+    grid->addWidget(libCapstone, 6, 0, 1, 0, Qt::AlignLeft);
+    grid->addWidget(libKeystone, 7, 0, 1, 0, Qt::AlignLeft);
+    grid->addWidget(libJSON, 8, 0, 1, 0, Qt::AlignLeft);
     QWidget *mainWidget = new QWidget();
     mainWidget->setLayout(grid);
     newWindow->setCentralWidget(mainWidget);
@@ -352,8 +478,60 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
     }
 }
 
-void Fhex::on_menu_find_patterns_click() {
-    findPatterns();
+/*
+ *  Toggle patterns display On/Off
+ */
+
+void Fhex::on_menu_toggle_patterns_click() {
+    if (patternsEnabled){
+        patternsEnabled = false;
+    } else {
+        patternsEnabled = true;
+    }
+
+    // Check if there is a file and is fully loaded
+    // Then reload with pattern applied (probably there is a better way of doing this,
+    // without having to reload the file, but due to if pattern was previously applied
+    // I think HexEditor has to be created accordingly to use of pattern), easiest
+    // way is just to reload the file and parse accordingly :)
+
+    if (this->hexEditor->fileSize > 0 && this->hexEditor->isFileLoaded()) {
+        QString path(this->hexEditor->getCurrentPath().c_str());
+        if (patternsEnabled){
+            this->hexEditor = new HexEditor(patternsFile);
+            this->loadFile(path);
+            findPatterns();
+        } else {
+            this->hexEditor = new HexEditor();
+            this->listOffsets->clear();
+            this->loadFile(path);
+        }
+    }
+}
+
+/*
+ * OPENS FILE SELECTOR FOR CHOOSING PATTERNS FILE TO USE
+ */
+
+void Fhex::on_menu_open_patterns_click() {
+    QString path(this->hexEditor->getCurrentPath().c_str());
+    QString patternsPath = QFileDialog::getOpenFileName(this,
+        tr("Open File"), path,
+        tr("JSON Files (*.json)"));
+    if (patternsPath != "") {
+        patternsFile = patternsPath.toStdString();
+
+        /*
+         * RELOAD FILE WITH PATTERNS FILE IF ENABLED,
+         * PARSE AND PATTERN PRINT LABELS
+         */
+
+        if (patternsEnabled) {
+            this->hexEditor = new HexEditor(patternsFile);
+            this->loadFile(path);
+            findPatterns();
+        }
+    }
 }
 
 void Fhex::findPatterns() {
@@ -372,6 +550,12 @@ void Fhex::findPatterns() {
         QString style("QLabel { color: #fbfbfb; padding: 2px; background-color: ");
         style += m->color.c_str();
         style += " };";
+
+        /*
+         * TODO: CAPTURE WINDOW RESIZE EVENT AND IMPLEMENT LOGIC
+         * TO SHOW PATTERNS IF THEY FIT ON SCREEN
+         */
+
         //Show comments only if the windows is maximized, otherwise probably we don't have enough space
         addFloatingLabel(m->index, m->length, m->message.c_str(), style, this->windowState().testFlag(Qt::WindowMaximized));
         this->listOffsets->addItem("0x" + QString::number(m->index, 16));
@@ -466,6 +650,11 @@ void Fhex::on_menu_file_open_click() {
     if (fileName != "") {
         this->loadFile(fileName);
         this->loadTables();
+
+        // IF PATTERNS ENABLED
+        if (patternsEnabled) {
+            findPatterns();
+        }
     }
 }
 
@@ -481,6 +670,10 @@ void Fhex::on_menu_file_diff_click() {
 
 void Fhex::compare(QString filename) {
 
+    // Clean-up display
+    this->clearFloatingLabels();
+    this->listOffsets->clear();
+
     this->hexEditor->bytesRead = 0;
     this->progressBar->setVisible(true);
     this->progressBar->setValue(0);
@@ -488,7 +681,7 @@ void Fhex::compare(QString filename) {
 
     future<vector<pair<unsigned long, uint8_t>>> fut_res = async([this, filename]()
     {
-        HexEditor newHexEditor;
+        HexEditor newHexEditor(patternsFile);
 #ifdef WINDOWS
         newHexEditor.loadFile(filename.toStdString());
 #else
@@ -721,13 +914,46 @@ void Fhex::on_convert_button_click() {
 }
 
 void Fhex::dropEvent(QDropEvent *event) {
-    const QUrl url = event->mimeData()->urls().at(0);
-    QString fileName = url.toLocalFile();
-    this->loadFile(fileName);
-    this->loadTables();
-    //More than one file, compare them
     if (event->mimeData()->urls().size() > 1) {
+        //More than one file, compare them
+        //Clean-up
+        this->listOffsets->clear();
+        // NEW HEXEDITOR WITHOUT PATTERNS
+        this->hexEditor = new HexEditor();
+        //Next files
+        const QUrl url = event->mimeData()->urls().at(0);
+        QString fileName = url.toLocalFile();
+        this->loadFile(fileName);
+        this->loadTables();
+
         this->compare(event->mimeData()->urls().at(1).toLocalFile());
+    } else {
+        //One file
+        if (patternsEnabled) {
+            // NEW HEXEDITOR WITH PATTERNS ENABLED
+            this->hexEditor = new HexEditor(patternsFile);
+        } else {
+            // NEW HEXEDITOR WITH PATTERNS NOT ENABLED
+            this->hexEditor = new HexEditor();
+            // If previously there was a file loaded as there is no way to see if
+            // a comparison was done previously
+            // clear & hide offsetlist as there are no expected patterns to be shown
+            if (this->hexEditor->isFileLoaded()) {
+                this->listOffsets->clear();
+                this->listOffsets->setVisible(false);
+            }
+        }
+
+        const QUrl url = event->mimeData()->urls().at(0);
+        QString fileName = url.toLocalFile();
+        this->loadFile(fileName);
+        this->loadTables();
+
+        // ADD PATTERNS IF ENABLED
+
+        if (patternsEnabled) {
+            findPatterns();
+        }
     }
 }
 
@@ -741,6 +967,61 @@ void Fhex::dragEnterEvent(QDragEnterEvent *e)
 void Fhex::on_menu_file_new_window_click() {
     Fhex *newFhex = new Fhex(nullptr, this->app);
     newFhex->show();
+}
+
+/*
+ * SAVE WINDOW SIZE AND POSITION SETTINGS
+ */
+
+void Fhex::saveSettings(string filePath){
+    jsettings["WindowSettings"]["width"] = this->size().width();
+    jsettings["WindowSettings"]["height"] = this->size().height();
+    QRect windowPosition = geometry();
+    jsettings["WindowSettings"]["x_position"] = windowPosition.x();
+    jsettings["WindowSettings"]["y_position"] = windowPosition.y();
+    jsettings["WindowSettings"]["maximized"] = this->windowState().testFlag(Qt::WindowMaximized);
+    jsettings["Patterns"]["enabled"] = patternsEnabled;
+    jsettings["Patterns"]["file"] = patternsFile;
+
+    // Merge changes
+    jconfig.merge_patch(jsettings);
+    // Create directory if needed
+#ifdef WINDOWS
+    mkdir(settingsPath.c_str());
+#else
+    mkdir(settingsPath.c_str(), 0777);
+#endif
+    // Save Window size & position
+    std::ofstream configFile;
+    try {
+        configFile.open(filePath,std::fstream::binary | std::fstream::trunc | std::fstream::out);
+    } catch (exception &e) {
+        cerr << "Exception occurred while creating json configuration file:" << endl << e.what() << endl;
+    }
+    // Write values
+    try {
+        configFile << jconfig;
+        configFile.close();
+    } catch (exception &e) {
+        cerr << "Exception occurred while writting json configuration file:" << endl << e.what() << endl;
+    }
+}
+
+void Fhex::on_menu_file_quit_click() {
+    saveSettings(settingsFile);
+    QApplication::quit();
+}
+
+/*
+ * CAPTURE 'X' BUTTON EVENT,
+ * NOT EVERY WM PROVIDES AN X BUTTON TO CLOSE
+ * WE NEED TO SAVE WINDOW SETTINGS UPON TEAR DOWN
+*/
+
+void Fhex::closeEvent(QCloseEvent *event)
+{
+    saveSettings(settingsFile);
+    event->accept();
 }
 
 void Fhex::on_menu_goto_offset_click() {
@@ -829,8 +1110,14 @@ void Fhex::on_horizontal_scrollbar_change(int value) {
 }
 
 void Fhex::on_menu_new_file_click() {
+    // CREATE NEW HexEditor AND CLEAR PATTERNS IF THEY EXIST
+    this->hexEditor = new HexEditor();
+    this->clearFloatingLabels();
+    this->listOffsets->clear();
+    this->listOffsets->setVisible(false);
     //Add one null byte
     this->qhex->setData(QByteArray::fromStdString("."));
+    this->statusBar.setText("New Hex buffer created");
 }
 
 bool Fhex::eventFilter(QObject* o, QEvent* e){

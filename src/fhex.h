@@ -47,6 +47,8 @@
 #include <thread>
 #include <future>
 
+#include "core/json.h"
+
 #include "qhexedit.h"
 #include "core/hexeditor.h"
 #include "fasm.h"
@@ -60,6 +62,7 @@
 
 #define DIFF_STYLE "QLabel { background-color: rgba(200, 100, 100, 70); }"
 
+using json = nlohmann::json;
 using namespace QtCharts;
 
 class Fhex : public QMainWindow
@@ -71,6 +74,21 @@ public:
     ~Fhex();
 
 private:
+    // RELEASE VERSION
+    string version = "2.4.2";
+
+    // JSON
+    json jconfig;
+    json jsettings;
+
+    // FILES
+    string settingsFile;
+    string settingsPath;
+    string patternsFile;
+
+    // PATTERNS
+    bool patternsEnabled;
+
     Fasm *fasm;
     qint64 lastCursorPos = 0;
     qint64 currentCursorPos = 0;
@@ -98,6 +116,8 @@ private:
     int prev_hscrollbar_value;
     bool initialized_tables = false;
     qint64 replaceBytes(QString searchText, QString replaceText, bool isHex = true);
+    void saveSettings(string filePath);
+    void closeEvent(QCloseEvent *event);
     void backgroundLoadTables(long index);
     void clearBackgroundColor(QTableWidget *table);
     void loadTables(long index = 0);
@@ -128,12 +148,18 @@ public slots:
     void on_menu_find_click();
     void on_menu_convert_bytes_click();
     void on_menu_file_new_window_click();
+    void on_menu_file_quit_click();
     void on_back_search_button_click();
     void on_menu_goto_offset_click();
     void on_menu_open_text_viewer_click();
     void on_vertical_scrollbar_change(int value);
     void on_horizontal_scrollbar_change(int value);
-    void on_menu_find_patterns_click();
+
+    void on_menu_toggle_patterns_click();
+
+    // CHANGED FROM on_menu_find_patterns_click()
+    void on_menu_open_patterns_click();
+
     void on_list_offset_item_click(QListWidgetItem *item);
     void on_menu_offset_list_click();
     void on_menu_new_file_click();

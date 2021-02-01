@@ -1,0 +1,180 @@
+{
+    "PatternMatching":
+    [
+        {
+            "string" : ".exe",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.exe' string"
+        },
+        {
+            "string" : ".EXE",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.EXE' string"
+        },
+        {
+            "string" : ".dll",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.dll' string"
+        },
+        {
+            "string" : ".DLL",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.DLL' string"
+        },
+        {
+            "string" : ".vbs",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.vbs' string"
+        },
+        {
+            "string" : ".VBS",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.VBS' string"
+        },
+        {
+            "string" : ".doc",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.doc' string"
+        },
+        {
+            "string" : ".DOC",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.DOC' string"
+        },
+        {
+            "string" : ".docx",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.docx' string"
+        },
+        {
+            "string" : ".DOCX",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.DOCX' string"
+        },
+        {
+            "string" : ".ps1",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.ps1' string"
+        },
+        {
+            "string" : ".PS1",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found '.PS1' string"
+        },
+        {
+            "string" : "https:",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'https:' string"
+        },
+        {
+            "string" : "HTTPS:",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'HTTPS:' string"
+        },
+        {
+            "string" : "http:",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'http:' string"
+        },
+        {
+            "string" : "HTTP:",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'HTTP:' string"
+        },
+        {
+            "string" : "www.",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'www.' string"
+        },
+        {
+            "string" : "WWW.",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'WWW.' string"
+        },
+        {
+            "string" : "hklm//",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'hklm//' (HKEY_LOCAL_MACHINE) string"
+        },
+        {
+            "string" : "HKLM//",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'HKLM//' (HKEY_LOCAL_MACHINE) string"
+        },
+        {
+            "string" : "hkcc//",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'hkcc//' (HKEY_CURRENT_CONFIG) string"
+        },
+        {
+            "string" : "HKCC//",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'HKCC//' (HKEY_CURRENT_CONFIG) string"
+        },
+        {
+            "string" : "hkcr//",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'hkcr//' (HKEY_CLASSES_ROOT) string"
+        },
+        {
+            "string" : "HKCR//",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'HKCR//' (HKEY_CLASSES_ROOT) string"
+        },
+        {
+            "string" : "hku//",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'hku//' (HKEY_USERS) string"
+        },
+        {
+            "string" : "HKU//",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'HKU//' (HKEY_USERS) string"
+        },
+        {
+            "string" : "hkcu//",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'hkcu//' (HKEY_CURRENT_USER) string"
+        },
+        {
+            "string" : "HKCU//",
+            "color" : "rgba(0, 192, 255, 75)",
+            "message" : "Found 'HKCU//' (HKEY_CURRENT_USER) string"
+        },
+        {
+            "bytes" : "4d5a",
+            "color" : "rgba(0, 235, 0, 75)",
+            "message" : "Found MZ magic bytes"
+        },
+        {
+            "bytes" : "0e1fba0e00b409cd21b8014ccd21546869732070726f6772616d2063616e6e6f742062652072756e20696e20444f53206d6f64652e0d0d0a2400000000000000",
+            "color" : "rgba(255, 235, 0, 75)",
+            "message" : "Found DOS Stub bytes"
+        },
+        {
+            "bytes" : "504500004c01",
+            "color" : "rgba(255, 123, 206, 75)",
+            "message" : "Found PE signature for Intel 386 or later processors and compatible processors bytes"
+        },
+        {
+            "bytes" : "504500006486",
+            "color" : "rgba(255, 123, 206, 75)",
+            "message" : "Found PE signature for x64 bytes"
+        },
+        {
+            "bytes" : "50450000c001",
+            "color" : "rgba(255, 123, 206, 75)",
+            "message" : "Found PE signature for ARM little endian bytes"
+        },
+        {
+            "bytes" : "5045000064aa",
+            "color" : "rgba(255, 123, 206, 75)",
+            "message" : "Found PE signature for ARM64 little endian bytes"
+        },
+        {
+            "bytes" : "50450000bc0e",
+            "color" : "rgba(255, 123, 206, 75)",
+            "message" : "Found PE signature for EFI byte code bytes"
+        }
+    ]
+}
