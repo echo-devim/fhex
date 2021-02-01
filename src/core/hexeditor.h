@@ -23,6 +23,7 @@ class HexEditor
 public:
     unsigned long fileSize;
     atomic<unsigned long> bytesRead;
+    HexEditor();
     HexEditor(string patternsFile);
     HexEditor(string path, string patternsFile);
     ~HexEditor();

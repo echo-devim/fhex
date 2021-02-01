@@ -37,12 +37,19 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     }
     QRect screenSize = QDesktopWidget().availableGeometry(this);
 
-    // Default is half of screen size & centered on screen
+    /*
+     * DEFAULTS
+     */
+
+    // Window: Default is half of screen size & centered on screen
     int width = screenSize.width() * 0.5f;
     int height = screenSize.height() * 0.5f;
     int x_position = screenSize.width() / 2 - width / 2;
     int y_position = screenSize.height() / 2 - height / 2;
     bool maximized = false;
+
+    // Pattern
+    patternsEnabled = false;
 
     // Look for size & position values to overwrite
     if (!jconfig.is_null()) {
@@ -64,6 +71,9 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
         if (!jconfig["Patterns"]["file"].is_null()) {
             patternsFile = jconfig["Patterns"]["file"].get<string>();
         }
+        if (!jconfig["Patterns"]["enabled"].is_null()) {
+            patternsEnabled = jconfig["Patterns"]["enabled"].get<bool>();
+        }
     }
 
     /**
@@ -79,7 +89,13 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     this->prev_vscrollbar_value = 0;
     this->prev_hscrollbar_value = 0;
 
-    this->hexEditor = new HexEditor(patternsFile);
+    if (patternsEnabled) {
+        // If Patterns enabled
+        this->hexEditor = new HexEditor(patternsFile);
+    } else {
+        // No Patterns
+        this->hexEditor = new HexEditor();
+    }
 
     /** Menu Initialization **/
     QMenu *file;
@@ -121,10 +137,15 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     openTextViewer->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_T));
     edit->addAction(openTextViewer);
 
-    // Changed from findPatternsMenu
+    // Added
     QAction *openPatternsMenu = new QAction(QIcon::fromTheme("folder-open"), "&Open Pattern Definition", this);
     openPatternsMenu->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_D));
     edit->addAction(openPatternsMenu);
+
+    // Toggle patterns display On/Off
+    QAction *togglePatternsMenu = new QAction(QIcon::fromTheme("find"), "&Toggle Patterns", this);
+    togglePatternsMenu->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_P));
+    edit->addAction(togglePatternsMenu);
 
     QAction *menuOffsetList = new QAction(QIcon::fromTheme("find"), "&Show/Hide Offset List", this);
     menuOffsetList->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_L));
@@ -137,7 +158,10 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     connect(newFile, &QAction::triggered, this, &Fhex::on_menu_new_file_click);
     connect(menuOffsetList, &QAction::triggered, this, &Fhex::on_menu_offset_list_click);
 
-    // Changed from findPatternsMenu
+    // Toggle patterns display On/Off
+    connect(togglePatternsMenu, &QAction::triggered, this, &Fhex::on_menu_toggle_patterns_click);
+
+    // Added
     connect(openPatternsMenu, &QAction::triggered, this, &Fhex::on_menu_open_patterns_click);
 
     connect(openTextViewer, &QAction::triggered, this, &Fhex::on_menu_open_text_viewer_click);
@@ -311,8 +335,10 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
         this->loadFile(filepath);
         this->loadTables();
 
-        // AND FIND PATTERNS
-        findPatterns();
+        // IF PATTERNS ENABLED
+        if (patternsEnabled) {
+            findPatterns();
+        }
     }
 
 }
@@ -453,7 +479,37 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
 }
 
 /*
- * CHANGED FROM on_menu_find_patterns_click()
+ *  Toggle patterns display On/Off
+ */
+
+void Fhex::on_menu_toggle_patterns_click() {
+    if (patternsEnabled){
+        patternsEnabled = false;
+    } else {
+        patternsEnabled = true;
+    }
+
+    // Check if there is a file and is fully loaded
+    // Then reload with pattern applied (probably there is a better way of doing this,
+    // without having to reload the file, but due to if pattern was previously applied
+    // I think HexEditor has to be created accordingly to use of pattern), easiest
+    // way is just to reload the file and parse accordingly :)
+
+    if (this->hexEditor->fileSize > 0 && this->hexEditor->isFileLoaded()) {
+        QString path(this->hexEditor->getCurrentPath().c_str());
+        if (patternsEnabled){
+            this->hexEditor = new HexEditor(patternsFile);
+            this->loadFile(path);
+            findPatterns();
+        } else {
+            this->hexEditor = new HexEditor();
+            this->listOffsets->clear();
+            this->loadFile(path);
+        }
+    }
+}
+
+/*
  * OPENS FILE SELECTOR FOR CHOOSING PATTERNS FILE TO USE
  */
 
@@ -466,13 +522,15 @@ void Fhex::on_menu_open_patterns_click() {
         patternsFile = patternsPath.toStdString();
 
         /*
-         * RELOAD FILE WITH PATTERNS FILE,
+         * RELOAD FILE WITH PATTERNS FILE IF ENABLED,
          * PARSE AND PATTERN PRINT LABELS
          */
 
-        this->hexEditor = new HexEditor(patternsFile);
-        this->loadFile(path);
-        findPatterns();
+        if (patternsEnabled) {
+            this->hexEditor = new HexEditor(patternsFile);
+            this->loadFile(path);
+            findPatterns();
+        }
     }
 }
 
@@ -495,7 +553,7 @@ void Fhex::findPatterns() {
 
         /*
          * TODO: CAPTURE WINDOW RESIZE EVENT AND IMPLEMENT LOGIC
-         * TO SHOW PATTERS IF THEY FIT ON SCREEN
+         * TO SHOW PATTERNS IF THEY FIT ON SCREEN
          */
 
         //Show comments only if the windows is maximized, otherwise probably we don't have enough space
@@ -592,7 +650,11 @@ void Fhex::on_menu_file_open_click() {
     if (fileName != "") {
         this->loadFile(fileName);
         this->loadTables();
-        findPatterns();
+
+        // IF PATTERNS ENABLED
+        if (patternsEnabled) {
+            findPatterns();
+        }
     }
 }
 
@@ -607,6 +669,10 @@ void Fhex::on_menu_file_diff_click() {
 }
 
 void Fhex::compare(QString filename) {
+
+    // Clean-up display
+    this->clearFloatingLabels();
+    this->listOffsets->clear();
 
     this->hexEditor->bytesRead = 0;
     this->progressBar->setVisible(true);
@@ -853,7 +919,7 @@ void Fhex::dropEvent(QDropEvent *event) {
         //Clean-up
         this->listOffsets->clear();
         // NEW HEXEDITOR WITHOUT PATTERNS
-        this->hexEditor = new HexEditor("");
+        this->hexEditor = new HexEditor();
         //Next files
         const QUrl url = event->mimeData()->urls().at(0);
         QString fileName = url.toLocalFile();
@@ -863,16 +929,31 @@ void Fhex::dropEvent(QDropEvent *event) {
         this->compare(event->mimeData()->urls().at(1).toLocalFile());
     } else {
         //One file
-        // NEW HEXEDITOR WITH PATTERNS
-        this->hexEditor = new HexEditor(patternsFile);
+        if (patternsEnabled) {
+            // NEW HEXEDITOR WITH PATTERNS ENABLED
+            this->hexEditor = new HexEditor(patternsFile);
+        } else {
+            // NEW HEXEDITOR WITH PATTERNS NOT ENABLED
+            this->hexEditor = new HexEditor();
+            // If previously there was a file loaded as there is no way to see if
+            // a comparison was done previously
+            // clear & hide offsetlist as there are no expected patterns to be shown
+            if (this->hexEditor->isFileLoaded()) {
+                this->listOffsets->clear();
+                this->listOffsets->setVisible(false);
+            }
+        }
 
         const QUrl url = event->mimeData()->urls().at(0);
         QString fileName = url.toLocalFile();
         this->loadFile(fileName);
         this->loadTables();
 
-        // ADD PATTERNS TO IT
-        findPatterns();
+        // ADD PATTERNS IF ENABLED
+
+        if (patternsEnabled) {
+            findPatterns();
+        }
     }
 }
 
@@ -899,6 +980,7 @@ void Fhex::saveSettings(string filePath){
     jsettings["WindowSettings"]["x_position"] = windowPosition.x();
     jsettings["WindowSettings"]["y_position"] = windowPosition.y();
     jsettings["WindowSettings"]["maximized"] = this->windowState().testFlag(Qt::WindowMaximized);
+    jsettings["Patterns"]["enabled"] = patternsEnabled;
     jsettings["Patterns"]["file"] = patternsFile;
 
     // Merge changes
@@ -1028,8 +1110,14 @@ void Fhex::on_horizontal_scrollbar_change(int value) {
 }
 
 void Fhex::on_menu_new_file_click() {
+    // CREATE NEW HexEditor AND CLEAR PATTERNS IF THEY EXIST
+    this->hexEditor = new HexEditor();
+    this->clearFloatingLabels();
+    this->listOffsets->clear();
+    this->listOffsets->setVisible(false);
     //Add one null byte
     this->qhex->setData(QByteArray::fromStdString("."));
+    this->statusBar.setText("New Hex buffer created");
 }
 
 bool Fhex::eventFilter(QObject* o, QEvent* e){

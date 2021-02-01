@@ -46,30 +46,4 @@ HEADERS += \
     src/core/hexeditor.h \
     src/qhexedit.h
 
-# Headers
-INCLUDEPATH += C:\Users\icarus\Desktop\DEV\C\keystone-0.9.2\include
-INCLUDEPATH += C:\Users\icarus\Desktop\DEV\C\capstone-4.0.2\include
-
-# Libs 64 Bits
-win32:contains(QMAKE_HOST.arch, x86_64) {
-    LIBS += -L$$PWD/../build-keystone-0.9.2-Desktop_Qt_5_15_2_MSVC2019_64bit-Release/llvm/lib/ -lkeystone
-    LIBS += -L$$PWD/../build-capstone-4.0.2-Desktop_Qt_5_15_2_MSVC2019_64bit-Release/ -lcapstone_dll
-
-    INCLUDEPATH += $$PWD/../build-keystone-0.9.2-Desktop_Qt_5_15_2_MSVC2019_64bit-Release/llvm/include
-    INCLUDEPATH += $$PWD/../build-capstone-4.0.2-Desktop_Qt_5_15_2_MSVC2019_64bit-Release
-
-    DEPENDPATH += $$PWD/../build-keystone-0.9.2-Desktop_Qt_5_15_2_MSVC2019_64bit-Release/llvm/include
-    DEPENDPATH += $$PWD/../build-capstone-4.0.2-Desktop_Qt_5_15_2_MSVC2019_64bit-Release
-} else {
-# Libs 32 Bits
-    LIBS += -L$$PWD/../build-keystone-0.9.2-Desktop_Qt_5_15_2_MSVC2019_32bit-Release/llvm/lib/ -lkeystone
-    LIBS += -L$$PWD/../build-capstone-4.0.2-Desktop_Qt_5_15_2_MSVC2019_32bit-Release/ -lcapstone_dll
-
-    INCLUDEPATH += $$PWD/../build-keystone-0.9.2-Desktop_Qt_5_15_2_MSVC2019_32bit-Release/llvm/include
-    INCLUDEPATH += $$PWD/../build-capstone-4.0.2-Desktop_Qt_5_15_2_MSVC2019_32bit-Release
-
-    DEPENDPATH += $$PWD/../build-keystone-0.9.2-Desktop_Qt_5_15_2_MSVC2019_32bit-Release/llvm/include
-    DEPENDPATH += $$PWD/../build-capstone-4.0.2-Desktop_Qt_5_15_2_MSVC2019_32bit-Release
-}
-
 QMAKE_LFLAGS += -lkeystone -lcapstone

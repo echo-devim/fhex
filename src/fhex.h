@@ -86,6 +86,9 @@ private:
     string settingsPath;
     string patternsFile;
 
+    // PATTERNS
+    bool patternsEnabled;
+
     Fasm *fasm;
     qint64 lastCursorPos = 0;
     qint64 currentCursorPos = 0;
@@ -151,6 +154,8 @@ public slots:
     void on_menu_open_text_viewer_click();
     void on_vertical_scrollbar_change(int value);
     void on_horizontal_scrollbar_change(int value);
+
+    void on_menu_toggle_patterns_click();
 
     // CHANGED FROM on_menu_find_patterns_click()
     void on_menu_open_patterns_click();

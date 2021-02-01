@@ -1,20 +1,23 @@
 #include "hexeditor.h"
 
 /*
- * REMOVED HARDCODED PATTERNS FILE PATH,
- * ADDED patternsFile TO MAKE SIGNATURE DIFFERENT
- * NOT SURE IF THIS IS THE BEST APPROACH BUT WORKS :)
+ * REMOVED HARDCODED PATTERNS FILE PATH
  */
+
+HexEditor::HexEditor()
+{
+    this->fileSize = 0;
+    this->patternMatching = NULL;
+}
 
 HexEditor::HexEditor(string patternsFile)
 {
-    this->fileSize = 0;
+    HexEditor();
     this->patternMatching = new PatternMatching(patternsFile);
 }
 
 /*
  * ADDED patternsFile TO MAKE SIGNATURE DIFFERENT
- * NOT SURE IF THIS IS THE BEST APPROACH BUT WORKS :)
  */
 
 HexEditor::HexEditor(string path, string patternsFile)
