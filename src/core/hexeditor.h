@@ -24,7 +24,8 @@ public:
     unsigned long fileSize;
     atomic<unsigned long> bytesRead;
     HexEditor();
-    HexEditor(string path);
+    HexEditor(string patternsFile);
+    HexEditor(string path, string patternsFile);
     ~HexEditor();
     bool loadFile(string path);
     bool loadFileAsync(string path);
