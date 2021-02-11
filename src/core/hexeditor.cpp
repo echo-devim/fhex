@@ -7,6 +7,7 @@
 HexEditor::HexEditor()
 {
     this->fileSize = 0;
+    this->loadedFileSize = 0;
     this->patternMatching = NULL;
 }
 
@@ -31,70 +32,24 @@ HexEditor::~HexEditor()
     delete this->patternMatching;
 }
 
-vector<uint8_t>* HexEditor::loadFilePart(string path, unsigned long start, unsigned long len) {
-    vector<uint8_t> *data = new vector<uint8_t>(len);
-    ifstream ifs(path, ios::binary|ios::ate);
-    ifs.seekg(static_cast<long>(start), ios::beg);
-    ifs.read(reinterpret_cast<char*>(data->data()), static_cast<long>(len));
-    this->bytesRead += len;
-    return data;
+void HexEditor::loadFilePart(string path, unsigned long start, unsigned long offset) {
+    ifstream ifs(path, ios::binary);
+    ifs.seekg(start, ios::beg);
+    long block_size;
+    while (this->bytesRead < offset) {
+        block_size = 10485760; //10 MB
+        if (this->bytesRead + block_size > offset)
+            block_size = offset - this->bytesRead;
+        ifs.read(reinterpret_cast<char*>(this->current_data.data())+this->bytesRead, block_size);
+        this->bytesRead += block_size;
+    }
 }
-
-// Parallel async file read
-bool HexEditor::loadFileAsync(string path) {
-    ifstream ifs(path, ios::binary|ios::ate);
-
-    if (!ifs.good()) {
-        cerr << "The file " << path << " is not accessible." << endl;
-        return false;
-    }
-
-    //clear current data
-    this->current_data.clear();
-    this->current_data.shrink_to_fit();
-    this->tasks.clear();
-
-    ifstream::pos_type pos = ifs.tellg(); //file length
-    this->fileSize = static_cast<unsigned long>(pos);
-    this->current_data.reserve(this->fileSize);
-
-    unsigned long chunkSize = fileSize / this->task_num;
-    unsigned long lastChunkSize = fileSize % this->task_num;
-
-    this->bytesRead = 0;
-    unsigned int i;
-    for (i = 0; i < this->task_num; i++) {
-        tasks.push_back(async([this, path, chunkSize, i](){ return this->loadFilePart(path, chunkSize * i, chunkSize); }));
-    }
-
-    // Load the last chunk
-    if (lastChunkSize > 0) {
-      tasks.push_back(async([this, path, chunkSize, lastChunkSize, i](){ return this->loadFilePart(path, chunkSize * i, lastChunkSize); }));
-    }
-
-    this->current_path = path;
-    return true;
-}
-
-
 
 bool HexEditor::isFileLoaded() {
-    if (this->bytesRead < this->fileSize)
-        return false;
-
-    for (auto& task : tasks) {
-        vector<uint8_t> *data = task.get();
-        this->current_data.insert(this->current_data.end(), data->begin(), data->end());
-        delete data;
-    }
-
-    tasks.clear();
-    tasks.shrink_to_fit();
-
-    return true;
+    return (this->bytesRead == this->loadedFileSize);
 }
 
-bool HexEditor::loadFile(string path) {
+bool HexEditor::loadFileAsync(string path, unsigned long start, unsigned long offset) {
     std::ifstream ifs(path, std::ios::binary);
 
     if (!ifs.good()) {
@@ -112,10 +67,23 @@ bool HexEditor::loadFile(string path) {
     this->fileSize = ifs.tellg();
     ifs.seekg(0, std::ios::beg);
 
-    // copies all data into buffer
-    this->current_data.insert(this->current_data.begin(), std::istreambuf_iterator<char>(ifs), {});
+    if (start >= this->fileSize) {
+        cerr << "Cannot read file from offset: " << start << endl;
+        return false;
+    }
 
-    this->bytesRead = this->fileSize;
+    if (offset == 0)
+        offset = this->fileSize - start;
+
+    if ((start + offset) > this->fileSize)
+        offset = this->fileSize - start;
+
+    this->current_data.reserve(offset);
+    this->bytesRead = 0;
+    // copies data into buffer
+    std::thread loader([this, path, start, offset](){ return this->loadFilePart(path, start, offset); });
+    loader.detach();
+    this->loadedFileSize = offset;
 
     return true;
 }
@@ -154,19 +122,15 @@ void HexEditor::updateByte(uint8_t new_byte, unsigned long file_offset) {
     out.write(b, 1);
 }
 
-bool HexEditor::saveDataToFile(string path) {
+bool HexEditor::saveDataToFile(string path) { //blocking function
     ofstream fout(path, ios::out | ios::binary);
     if (!fout.good()) {
         cerr << "The file " << path << " is not accessible." << endl;
         return false;
     }
-    fout.write(reinterpret_cast<char*>(this->current_data.data()), fileSize);
+    fout.write(reinterpret_cast<char*>(this->current_data.data()), this->loadedFileSize);
     fout.close();
     return true;
-}
-
-void HexEditor::saveDataToFileAsync(string path) {
-    async(&HexEditor::saveDataToFile, this, path);
 }
 
 string HexEditor::fromUintVectorToPrintableString(vector<uint8_t> &vec, long start, long len) {
@@ -193,9 +157,9 @@ vector<pair<unsigned long, uint8_t>>  HexEditor::compareTo(HexEditor &hexEditor)
     vector<pair<unsigned long, uint8_t>> diff_bytes;
 
     //Find who has the smaller file size
-    unsigned long filesize = this->fileSize;
-    if (hexEditor.fileSize < filesize)
-        filesize = hexEditor.fileSize;
+    unsigned long filesize = this->loadedFileSize;
+    if (hexEditor.loadedFileSize < filesize)
+        filesize = hexEditor.loadedFileSize;
 
     for (unsigned long i = 0; i < filesize; i++) {
         uint8_t byte_new = hexEditor.getCurrentData()[i];

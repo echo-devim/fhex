@@ -22,13 +22,13 @@ class HexEditor
 {
 public:
     unsigned long fileSize;
+    unsigned long loadedFileSize;
     atomic<unsigned long> bytesRead;
     HexEditor();
     HexEditor(string patternsFile);
     HexEditor(string path, string patternsFile);
     ~HexEditor();
-    bool loadFile(string path);
-    bool loadFileAsync(string path);
+    bool loadFileAsync(string path, unsigned long start = 0, unsigned long offset = 0);
     bool isFileLoaded();
     vector<uint8_t> &getCurrentData();
     string getCurrentDataAsString(unsigned long start, unsigned long len);
@@ -36,7 +36,6 @@ public:
     void setCurrentData(vector<uint8_t> &data);
     void updateByte(uint8_t new_byte, unsigned long file_offset);
     bool saveDataToFile(string path);
-    void saveDataToFileAsync(string path);
     string getCurrentPath();
     vector<Match *> findPatterns();
     vector<pair<unsigned long, uint8_t>> compareTo(HexEditor &hexEditor);
@@ -44,11 +43,10 @@ public:
 private:
     PatternMatching *patternMatching;
     unsigned int task_num = std::thread::hardware_concurrency();
-    vector<std::future<vector<uint8_t>*>> tasks;
     vector<std::future<vector<Match*>>> pattern_tasks;
     string current_path;
     vector<uint8_t> current_data;
-    vector<uint8_t>* loadFilePart(string path, unsigned long start, unsigned long len);
+    void loadFilePart(string path, unsigned long start, unsigned long offset);
     vector<Match *> findPatternsInChunk(unsigned long start, unsigned long len);
     string fromUintVectorToPrintableString(vector<uint8_t> &vec, long start, long len);
 

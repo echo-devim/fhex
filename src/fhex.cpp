@@ -409,7 +409,7 @@ void Fhex::on_list_offset_item_click(QListWidgetItem *item) {
     text.replace("0x", "");
     if (!text.isEmpty()) {
         qint64 offset = text.toLongLong(nullptr, 16);
-        if (offset <= static_cast<long long>(this->hexEditor->fileSize)) {
+        if (offset <= static_cast<long long>(this->hexEditor->loadedFileSize)) {
             this->qhex->setCursorPosition(offset * 2);
             this->qhex->ensureVisible();
         } else {
@@ -419,10 +419,10 @@ void Fhex::on_list_offset_item_click(QListWidgetItem *item) {
 }
 
 void Fhex::backgroundLoadTables(long index) {
-    if (this->hexEditor->fileSize > 2147483647) {
+    if (this->hexEditor->loadedFileSize > 2147483647) {
         this->qhex->setData(QString(this->hexEditor->getCurrentPath().c_str()));
     } else {
-        this->qhex->setData(reinterpret_cast<const char*>(this->hexEditor->getCurrentData().data()), this->hexEditor->fileSize);
+        this->qhex->setData(reinterpret_cast<const char*>(this->hexEditor->getCurrentData().data()), this->hexEditor->loadedFileSize);
     }
     this->initialized_tables = true;
 }
@@ -439,7 +439,7 @@ void Fhex::loadTables(long index) {
 void Fhex::updateOffsetBar() {
     qint64 offset = this->currentCursorPos;
     this->offsetBar.setText("File Offset: 0x" + QString::number(offset, 16) + " (" + QString::number(offset) + ") | "
-                            + "File Size: " + QString::number(this->hexEditor->fileSize / 1024.0, 'f', 2) + " KB");
+                            + "File Size: " + QString::number(this->hexEditor->loadedFileSize / 1024.0, 'f', 2) + " KB");
 }
 
 void Fhex::updateOffsetBarWithSelection() {
@@ -449,7 +449,7 @@ void Fhex::updateOffsetBarWithSelection() {
         this->offsetBar.setText("First Offset: 0x" + QString::number(offsets.first, 16) + " (" + QString::number(offsets.first) + ") | "
                                 + "Last Offset: 0x" + QString::number(offsets.second, 16) + " (" + QString::number(offsets.second) + ") | "
                                 + "Selected bytes: " + QString::number(offsets.second - offsets.first + 1) + " | "
-                                + "File Size: " + QString::number(this->hexEditor->fileSize / 1024.0, 'f', 2) + " KB");
+                                + "File Size: " + QString::number(this->hexEditor->loadedFileSize / 1024.0, 'f', 2) + " KB");
     }
 }
 void Fhex::on_editor_mouse_click() {
@@ -499,7 +499,7 @@ void Fhex::on_menu_toggle_patterns_click() {
     // I think HexEditor has to be created accordingly to use of pattern), easiest
     // way is just to reload the file and parse accordingly :)
 
-    if (this->hexEditor->fileSize > 0 && this->hexEditor->isFileLoaded()) {
+    if (this->hexEditor->loadedFileSize > 0 && this->hexEditor->isFileLoaded()) {
         QString path(this->hexEditor->getCurrentPath().c_str());
         if (patternsEnabled){
             this->hexEditor = new HexEditor(patternsFile);
@@ -593,16 +593,9 @@ bool Fhex::loadFile(QString path) {
     this->clearFloatingLabels();
     this->statusBar.setText("Loading " + path);
     auto t1 = std::chrono::high_resolution_clock::now();
-#ifdef WINDOWS
-    bool res = this->hexEditor->loadFile(path.toStdString());
-#else
     bool res = this->hexEditor->loadFileAsync(path.toStdString());
-#endif
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
-
     while(!this->hexEditor->isFileLoaded()) {
-        int val = static_cast<int>(this->hexEditor->bytesRead * 100 / this->hexEditor->fileSize);
+        int val = static_cast<int>(this->hexEditor->bytesRead * 100 / this->hexEditor->loadedFileSize);
         this->progressBar->setValue(val);
         this->statusBar.setText("Loading " + QString::number(val) + "%");
         this->repaint();
@@ -610,9 +603,10 @@ bool Fhex::loadFile(QString path) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     this->progressBar->setVisible(false);
-
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
     if (res) {
-        this->statusBar.setText("File loaded (" + QString::number(this->hexEditor->fileSize / 1024) + " KB) in " + QString::number(duration / 1000.) + "s");
+        this->statusBar.setText("File loaded (" + QString::number(this->hexEditor->loadedFileSize / 1024) + " KB) in " + QString::number(duration / 1000.) + "s");
         this->setWindowTitle("Fhex - " + QString(this->hexEditor->getCurrentPath().c_str()));
         loadBinChart();
     } else {
@@ -624,9 +618,9 @@ bool Fhex::loadFile(QString path) {
 void Fhex::loadBinChart() {
     QLineSeries *series = new QLineSeries();
     unsigned long step = 1;
-    if (this->hexEditor->fileSize > CHART_DENSITY)
-        step = this->hexEditor->fileSize / CHART_DENSITY;
-    for (unsigned long offset = 0; offset < this->hexEditor->fileSize; offset += step) {
+    if (this->hexEditor->loadedFileSize > CHART_DENSITY)
+        step = this->hexEditor->loadedFileSize / CHART_DENSITY;
+    for (unsigned long offset = 0; offset < this->hexEditor->loadedFileSize; offset += step) {
         series->append(offset, this->hexEditor->getCurrentData()[offset]);
     }
 
@@ -686,11 +680,7 @@ void Fhex::compare(QString filename) {
     future<vector<pair<unsigned long, uint8_t>>> fut_res = async([this, filename]()
     {
         HexEditor newHexEditor(patternsFile);
-#ifdef WINDOWS
-        newHexEditor.loadFile(filename.toStdString());
-#else
         newHexEditor.loadFileAsync(filename.toStdString());
-#endif
         while(!newHexEditor.isFileLoaded()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -698,7 +688,7 @@ void Fhex::compare(QString filename) {
     });
 
     while (fut_res.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
-        int val = (this->hexEditor->bytesRead * 100) / this->hexEditor->fileSize;
+        int val = (this->hexEditor->bytesRead * 100) / this->hexEditor->loadedFileSize;
         this->progressBar->setValue(val);
         this->repaint();
         this->app->processEvents();
@@ -858,7 +848,7 @@ void Fhex::on_replace_all_button_click() {
         if (res >= 0) {
             matches++;
             this->statusBar.setText("Current matches: " + QString::number(matches));
-            this->progressBar->setValue(static_cast<int>(static_cast<unsigned long>(res)*100 / this->hexEditor->fileSize));
+            this->progressBar->setValue(static_cast<int>(static_cast<unsigned long>(res)*100 / this->hexEditor->loadedFileSize));
             this->statusBar.repaint();
             this->qhex->setCursorPosition(res + 1);
         }
@@ -888,7 +878,7 @@ void Fhex::saveDataToFile(string path) {
     this->hexEditor->getCurrentData().shrink_to_fit();
     QByteArray datacopy(this->qhex->data());
     this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().begin(), datacopy.begin(), datacopy.end());
-    this->hexEditor->fileSize = this->qhex->data().size();
+    this->hexEditor->loadedFileSize = this->qhex->data().size();
     this->hexEditor->saveDataToFile(path);
 }
 
@@ -1031,7 +1021,7 @@ void Fhex::on_menu_goto_offset_click() {
     text.replace("0x", "");
     if (ok && !text.isEmpty()) {
         qint64 offset = text.toLongLong(nullptr, 16);
-        if (offset <= static_cast<long long>(this->hexEditor->fileSize)) {
+        if (offset <= static_cast<long long>(this->hexEditor->loadedFileSize)) {
             this->qhex->setCursorPosition(offset * 2);
             this->qhex->ensureVisible();
         } else {
