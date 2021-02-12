@@ -72,18 +72,20 @@ bool HexEditor::loadFileAsync(string path, unsigned long start, unsigned long of
         return false;
     }
 
+    this->startOffset = start;
     if (offset == 0)
         offset = this->fileSize - start;
 
     if ((start + offset) > this->fileSize)
         offset = this->fileSize - start;
 
+    this->loadedFileSize = offset;
+
     this->current_data.reserve(offset);
     this->bytesRead = 0;
     // copies data into buffer
     std::thread loader([this, path, start, offset](){ return this->loadFilePart(path, start, offset); });
     loader.detach();
-    this->loadedFileSize = offset;
 
     return true;
 }
@@ -123,13 +125,61 @@ void HexEditor::updateByte(uint8_t new_byte, unsigned long file_offset) {
 }
 
 bool HexEditor::saveDataToFile(string path) { //blocking function
+    bool temp_file = false;
+    //Check if we are trying to overwrite the file
+    if (this->current_path == path) {
+        //Use a temporary file
+        path = path + ".fhextmp";
+        temp_file = true;
+    }
     ofstream fout(path, ios::out | ios::binary);
     if (!fout.good()) {
         cerr << "The file " << path << " is not accessible." << endl;
         return false;
     }
-    fout.write(reinterpret_cast<char*>(this->current_data.data()), this->loadedFileSize);
+    if (this->loadedFileSize < this->fileSize) {
+        //Copy initial and final part from original file, read the current chunk from the hexeditor
+        std::ifstream ifs(this->current_path, std::ios::binary);
+        ifs.seekg(0, std::ios::beg);
+        vector<unsigned char> data;
+        long block_size;
+        unsigned long bytes_read = 0;
+        while (bytes_read < this->startOffset) {
+            block_size = 10485760; //10 MB
+            if (bytes_read + block_size > this->startOffset)
+                block_size = this->startOffset - bytes_read;
+            data.reserve(block_size);
+            data.clear();
+            ifs.read(reinterpret_cast<char*>(data.data()), block_size);
+            fout.write(reinterpret_cast<char*>(data.data()), block_size);
+            bytes_read += block_size;
+        }
+        fout.write(reinterpret_cast<char*>(this->current_data.data()), this->loadedFileSize);
+        unsigned long offset = this->fileSize - (this->startOffset + this->loadedFileSize);
+        if (offset > 0) {
+            //Copy the final part from the original file
+            ifs.seekg((this->startOffset + this->loadedFileSize), ios::beg);
+            bytes_read = 0;
+            while (bytes_read < offset) {
+                block_size = 10485760; //10 MB
+                if (bytes_read + block_size > offset)
+                    block_size = offset - bytes_read;
+                data.reserve(block_size);
+                data.clear();
+                ifs.read(reinterpret_cast<char*>(data.data()), block_size);
+                fout.write(reinterpret_cast<char*>(data.data()), block_size);
+                bytes_read += block_size;
+            }
+         }
+    } else {
+        fout.write(reinterpret_cast<char*>(this->current_data.data()), this->loadedFileSize);
+    }
     fout.close();
+    // if we used a temporary file, move it to the original path
+    if (temp_file) {
+        remove(this->current_path.c_str());
+        rename(path.c_str(), this->current_path.c_str());
+    }
     return true;
 }
 

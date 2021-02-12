@@ -103,6 +103,8 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     QAction *newFile = new QAction(QIcon::fromTheme("document-new"), "&New", this);
     QAction *openFile = new QAction(QIcon::fromTheme("folder-open"), "&Open", this);
     openFile->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_O));
+    QAction *chunkOpenFile = new QAction(QIcon::fromTheme("folder-open"), "&Chunk Loader", this);
+    chunkOpenFile->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_H));
     QAction *diffFile = new QAction(QIcon::fromTheme("folder-open"), "&Diff..", this);
     QAction *saveFile = new QAction(QIcon::fromTheme("document-save"), "&Save", this);
     saveFile->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_S));
@@ -115,6 +117,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
 
     file->addAction(newFile);
     file->addAction(openFile);
+    file->addAction(chunkOpenFile);
     file->addAction(diffFile);
     file->addAction(saveFile);
     file->addAction(saveNewFile);
@@ -168,6 +171,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     connect(gotoOffset, &QAction::triggered, this, &Fhex::on_menu_goto_offset_click);
     connect(diffFile, &QAction::triggered, this, &Fhex::on_menu_file_diff_click);
     connect(openFile, &QAction::triggered, this, &Fhex::on_menu_file_open_click);
+    connect(chunkOpenFile, &QAction::triggered, this, &Fhex::on_menu_file_chunk_open_click);
     connect(saveFile, &QAction::triggered, this, &Fhex::on_menu_file_save_click);
     connect(saveNewFile, &QAction::triggered, this, &Fhex::on_menu_file_save_as_click);
     connect(openNewWindow, &QAction::triggered, this, &Fhex::on_menu_file_new_window_click);
@@ -586,14 +590,23 @@ void Fhex::clearFloatingLabels() {
     this->floatingLabels.clear();
 }
 
-bool Fhex::loadFile(QString path) {
+bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset) {
     this->qhex->clear();
+    QFileInfo finfo = QFileInfo(path);
+    if (offset == 0)
+        offset = finfo.size();
+    if (offset > FILE_SIZE_LIMIT) {
+        string warning = "Cannot load the entire file into memory, please select the file chunk to view. Maximum amount of allowed MB in memory: " + to_string((FILE_SIZE_LIMIT/(1024*1024)));
+        cerr << warning << endl;
+        this->statusBar.setText(warning.c_str());
+        this->chunkOpenFile(path);
+    }
     this->progressBar->setVisible(true);
     this->progressBar->setValue(0);
     this->clearFloatingLabels();
     this->statusBar.setText("Loading " + path);
     auto t1 = std::chrono::high_resolution_clock::now();
-    bool res = this->hexEditor->loadFileAsync(path.toStdString());
+    bool res = this->hexEditor->loadFileAsync(path.toStdString(), start, offset);
     while(!this->hexEditor->isFileLoaded()) {
         int val = static_cast<int>(this->hexEditor->bytesRead * 100 / this->hexEditor->loadedFileSize);
         this->progressBar->setValue(val);
@@ -606,7 +619,11 @@ bool Fhex::loadFile(QString path) {
     auto t2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
     if (res) {
-        this->statusBar.setText("File loaded (" + QString::number(this->hexEditor->loadedFileSize / 1024) + " KB) in " + QString::number(duration / 1000.) + "s");
+        QString portion = "";
+        if (this->hexEditor->loadedFileSize < this->hexEditor->fileSize) {
+            portion = QString::number(this->hexEditor->loadedFileSize / 1024) + " KB of ";
+        }
+        this->statusBar.setText("Loaded (" + portion + QString::number(this->hexEditor->fileSize / 1024) + " KB) in " + QString::number(duration / 1000.) + "s");
         this->setWindowTitle("Fhex - " + QString(this->hexEditor->getCurrentPath().c_str()));
         loadBinChart();
     } else {
@@ -638,6 +655,80 @@ void Fhex::loadBinChart() {
 void Fhex::on_binchart_click(const QPointF &p) {
     this->qhex->setCursorPosition(static_cast<qint64>(p.x()) * 2);
     this->qhex->ensureVisible();
+}
+
+void Fhex::on_menu_file_chunk_open_click() {
+    this->chunkOpenFile();
+}
+
+void Fhex::chunkOpenFile(QString fpath) {
+    unsigned long start = 0;
+    unsigned long offset = 0;
+    QString path;
+    QDialog *chunkWindow = new QDialog(this);
+    chunkWindow->setWindowIcon(this->windowIcon());
+    chunkWindow->setWindowTitle("Fhex - Chunk loader");
+    chunkWindow->setFixedSize(250, 300);
+    QVBoxLayout *mainLayout =new QVBoxLayout(chunkWindow);
+    QLabel *labelWarning = new QLabel("The save operation saves the whole file, including the other chunks not loaded.", chunkWindow);
+    labelWarning->setStyleSheet("font-style: italic;");
+    labelWarning->setWordWrap(true);
+    labelWarning->setFixedHeight(50);
+    labelWarning->setContentsMargins(0,0,0,10);
+    QHBoxLayout *fileLayout = new QHBoxLayout(chunkWindow);
+    QLabel *labelFile = new QLabel("File: ", chunkWindow);
+    QLineEdit *filepath = new QLineEdit(chunkWindow);
+    filepath->setText(fpath);
+    QPushButton *btnOpen = new QPushButton("Select", chunkWindow);
+    btnOpen->setFixedWidth(60);
+    fileLayout->addWidget(filepath);
+    fileLayout->addWidget(btnOpen);
+    QLabel *labelStart = new QLabel("Start offset: ", chunkWindow);
+    labelStart->setFixedHeight(20);
+    QLabel *labelOffset = new QLabel("Length offset:", chunkWindow);
+    labelOffset->setFixedHeight(20);
+    QSpinBox *startOffset = new QSpinBox(chunkWindow);
+    startOffset->setFixedHeight(30);
+    startOffset->setMinimum(0);
+    startOffset->setMaximum(FILE_SIZE_LIMIT);
+    QSpinBox *lengthOffset = new QSpinBox(chunkWindow);
+    lengthOffset->setFixedHeight(30);
+    lengthOffset->setMinimum(1);
+    lengthOffset->setMaximum(FILE_SIZE_LIMIT);
+    QPushButton *btnLoad = new QPushButton("Load", chunkWindow);
+    QHBoxLayout *buttonsLayout = new QHBoxLayout(chunkWindow);
+    QWidget *container = new QWidget(chunkWindow);
+    container->setLayout(fileLayout);
+    buttonsLayout->addWidget(btnLoad);
+    mainLayout->addWidget(labelWarning);
+    mainLayout->addWidget(labelFile);
+    mainLayout->addWidget(container);
+    mainLayout->addWidget(labelStart);
+    mainLayout->addWidget(startOffset);
+    mainLayout->addWidget(labelOffset);
+    mainLayout->addWidget(lengthOffset);
+    mainLayout->addLayout(buttonsLayout);
+    mainLayout->setSpacing(4);
+    connect(btnLoad, &QPushButton::clicked, [chunkWindow, startOffset, lengthOffset, &start, &offset]()
+    {
+        start = startOffset->value();
+        offset = lengthOffset->value();
+        chunkWindow->close();
+    });
+    connect(btnOpen, &QPushButton::clicked, [this, filepath]()
+    {
+        QString fileName = QFileDialog::getOpenFileName(this,
+            tr("Open File"), filepath->text(),
+            tr("All Files (*)"));
+        if (fileName != "") {
+            filepath->setText(fileName);
+        }
+    });
+    chunkWindow->setLayout(mainLayout);
+    chunkWindow->exec();
+    path = filepath->text();
+    this->loadFile(path, start, offset);
+    this->loadTables();
 }
 
 void Fhex::on_menu_file_open_click() {

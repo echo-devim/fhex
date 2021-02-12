@@ -42,6 +42,8 @@
 #include <QtCharts>
 #include <QLineSeries>
 #include <QMessageBox>
+#include <QFileInfo>
+#include <QSpinBox>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -53,6 +55,7 @@
 #include "core/hexeditor.h"
 #include "fasm.h"
 
+#define FILE_SIZE_LIMIT 1073741824 //1GB is the maximum amount of bytes that the hex editor can load into memory
 #define MAX_DIFF_BYTES 3000
 #define DEFAULT_UNPRINTABLE_CHAR "."
 #define CHUNK_SIZE 1024
@@ -123,7 +126,7 @@ private:
     void loadTables(long index = 0);
     void dropEvent(QDropEvent *event);
     void dragEnterEvent(QDragEnterEvent *e);
-    bool loadFile(QString path);
+    bool loadFile(QString path, unsigned long start = 0, unsigned long offset = 0);
     void keyPressEvent( QKeyEvent *event );
     void compare(QString filename);
     void addFloatingLabel(qint64 offset, int len, QString text, QString style = "", bool addComment = false);
@@ -133,11 +136,13 @@ private:
     void loadBinChart();
     void updateOffsetBar();
     void updateOffsetBarWithSelection();
+    void chunkOpenFile(QString fpath = "");
 
 public slots:
     void on_editor_mouse_click();
     void on_editor_mouse_move();
     void on_menu_file_open_click();
+    void on_menu_file_chunk_open_click();
     void on_menu_file_diff_click();
     void on_menu_file_save_click();
     void on_menu_file_save_as_click();

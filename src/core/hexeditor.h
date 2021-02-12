@@ -23,6 +23,7 @@ class HexEditor
 public:
     unsigned long fileSize;
     unsigned long loadedFileSize;
+    unsigned long startOffset;
     atomic<unsigned long> bytesRead;
     HexEditor();
     HexEditor(string patternsFile);
