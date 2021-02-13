@@ -114,6 +114,8 @@ private:
     QLabel statusBar;
     QLabel offsetBar;
     QLabel convertLabel;
+    unsigned long startOffset;
+    unsigned long lengthOffset;
     vector<QLabel*> floatingLabels;
     int prev_vscrollbar_value;
     int prev_hscrollbar_value;

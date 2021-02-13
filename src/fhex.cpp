@@ -524,6 +524,12 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
             QApplication::clipboard()->setText(QString::fromWCharArray(this->hexEditor->getCurrentDataAsWString(offsets.first, offsets.second - offsets.first).c_str()));
         } else if (event->key() == Qt::Key_F5) {
             this->loadFile(this->hexEditor->getCurrentPath().c_str());
+        } else if ((event->key() == Qt::Key_Right) && QApplication::keyboardModifiers().testFlag(Qt::AltModifier)) {
+            //Go to the next chunk
+            this->loadFile(this->hexEditor->getCurrentPath().c_str(), this->startOffset+this->lengthOffset, this->lengthOffset, true);
+        } else if ((event->key() == Qt::Key_Left) && QApplication::keyboardModifiers().testFlag(Qt::AltModifier)) {
+            //Go to the previous chunk
+            this->loadFile(this->hexEditor->getCurrentPath().c_str(), this->startOffset-this->lengthOffset, this->lengthOffset, true);
         }
         updateOffsetBar();
         updateOffsetBarWithSelection();
@@ -632,6 +638,8 @@ bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset, boo
     this->clearFloatingLabels();
     this->statusBar.setText("Loading " + path);
     auto t1 = std::chrono::high_resolution_clock::now();
+    this->startOffset = start;
+    this->lengthOffset = offset;
     bool res = this->hexEditor->loadFileAsync(path.toStdString(), start, offset);
     while(!this->hexEditor->isFileLoaded() && res) {
         int val = 0;
@@ -649,9 +657,9 @@ bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset, boo
     if (res) {
         QString portion = "";
         if (this->hexEditor->loadedFileSize < this->hexEditor->fileSize) {
-            portion = QString::number(this->hexEditor->loadedFileSize / 1024) + " KB of ";
+            portion = QString::number(this->hexEditor->loadedFileSize / 1024.0) + " KB of ";
         }
-        this->statusBar.setText("Loaded (" + portion + QString::number(this->hexEditor->fileSize / 1024) + " KB) in " + QString::number(duration / 1000.) + "s");
+        this->statusBar.setText("Loaded (" + portion + QString::number(this->hexEditor->fileSize / 1024.0) + " KB) in " + QString::number(duration / 1000.) + "s");
         this->setWindowTitle("Fhex - " + QString(this->hexEditor->getCurrentPath().c_str()));
         loadBinChart();
         if (updateUI) {
