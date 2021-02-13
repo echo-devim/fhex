@@ -117,16 +117,14 @@ private:
     vector<QLabel*> floatingLabels;
     int prev_vscrollbar_value;
     int prev_hscrollbar_value;
-    bool initialized_tables = false;
     qint64 replaceBytes(QString searchText, QString replaceText, bool isHex = true);
     void saveSettings(string filePath);
     void closeEvent(QCloseEvent *event);
-    void backgroundLoadTables(long index);
+    void backgroundUpdateHexWidget();
     void clearBackgroundColor(QTableWidget *table);
-    void loadTables(long index = 0);
     void dropEvent(QDropEvent *event);
     void dragEnterEvent(QDragEnterEvent *e);
-    bool loadFile(QString path, unsigned long start = 0, unsigned long offset = 0);
+    bool loadFile(QString path, unsigned long start = 0, unsigned long offset = 0, bool updateUI=true);
     void keyPressEvent( QKeyEvent *event );
     void compare(QString filename);
     void addFloatingLabel(qint64 offset, int len, QString text, QString style = "", bool addComment = false);

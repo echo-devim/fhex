@@ -339,7 +339,6 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     //If a filepath was passed as argument, open it
     if (filepath != "") {
         this->loadFile(filepath);
-        this->loadTables();
 
         // IF PATTERNS ENABLED
         if (patternsEnabled) {
@@ -463,23 +462,13 @@ void Fhex::on_list_offset_item_click(QListWidgetItem *item) {
     }
 }
 
-void Fhex::backgroundLoadTables(long index) {
+void Fhex::backgroundUpdateHexWidget() {
     if (this->hexEditor->loadedFileSize > 2147483647) {
         this->qhex->setData(QString(this->hexEditor->getCurrentPath().c_str()));
     } else {
         this->qhex->setData(reinterpret_cast<const char*>(this->hexEditor->getCurrentData().data()), this->hexEditor->loadedFileSize);
     }
-    this->initialized_tables = true;
 }
-
-void Fhex::loadTables(long index) {
-    this->initialized_tables = false;
-
-    std::thread t(&Fhex::backgroundLoadTables, this, index);
-    t.detach();
-
-}
-
 
 void Fhex::updateOffsetBar() {
     qint64 offset = this->currentCursorPos;
@@ -520,7 +509,6 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
             QApplication::clipboard()->setText(QString::fromWCharArray(this->hexEditor->getCurrentDataAsWString(offsets.first, offsets.second - offsets.first).c_str()));
         } else if (event->key() == Qt::Key_F5) {
             this->loadFile(this->hexEditor->getCurrentPath().c_str());
-            this->loadTables();
         }
         updateOffsetBar();
         updateOffsetBarWithSelection();
@@ -538,7 +526,7 @@ void Fhex::on_menu_toggle_patterns_click() {
         patternsEnabled = true;
     }
 
-    // Check if there is a file and is fully loaded
+    // Check if there is a file and is fully loaded (FIXME)
     // Then reload with pattern applied (probably there is a better way of doing this,
     // without having to reload the file, but due to if pattern was previously applied
     // I think HexEditor has to be created accordingly to use of pattern), easiest
@@ -548,12 +536,12 @@ void Fhex::on_menu_toggle_patterns_click() {
         QString path(this->hexEditor->getCurrentPath().c_str());
         if (patternsEnabled){
             this->hexEditor = new HexEditor(patternsFile);
-            this->loadFile(path);
+            this->loadFile(path, false);
             findPatterns();
         } else {
             this->hexEditor = new HexEditor();
             this->listOffsets->clear();
-            this->loadFile(path);
+            this->loadFile(path, false);
         }
     }
 }
@@ -577,7 +565,7 @@ void Fhex::on_menu_open_patterns_click() {
 
         if (patternsEnabled) {
             this->hexEditor = new HexEditor(patternsFile);
-            this->loadFile(path);
+            this->loadFile(path, false);
             findPatterns();
         }
     }
@@ -631,7 +619,7 @@ void Fhex::clearFloatingLabels() {
     this->floatingLabels.clear();
 }
 
-bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset) {
+bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset, bool updateUI) {
     this->qhex->clear();
     QFileInfo finfo = QFileInfo(path);
     if (offset == 0)
@@ -678,6 +666,10 @@ bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset) {
         this->statusBar.setText("Loaded (" + portion + QString::number(this->hexEditor->fileSize / 1024) + " KB) in " + QString::number(duration / 1000.) + "s");
         this->setWindowTitle("Fhex - " + QString(this->hexEditor->getCurrentPath().c_str()));
         loadBinChart();
+        if (updateUI) {
+            std::thread t(&Fhex::backgroundUpdateHexWidget, this);
+            t.detach();
+        }
     } else {
         this->statusBar.setText("Error while opening " + path);
     }
@@ -780,7 +772,6 @@ void Fhex::chunkOpenFile(QString fpath) {
     chunkWindow->exec();
     path = filepath->text();
     this->loadFile(path, start, offset);
-    this->loadTables();
 }
 
 void Fhex::on_menu_file_open_click() {
@@ -790,7 +781,6 @@ void Fhex::on_menu_file_open_click() {
         tr("All Files (*)"));
     if (fileName != "") {
         this->loadFile(fileName);
-        this->loadTables();
 
         // IF PATTERNS ENABLED
         if (patternsEnabled) {
@@ -1055,7 +1045,6 @@ void Fhex::saveDataToFile(string path, bool loadfile) {
         if (loadfile) {
             //Open the saved file
             this->loadFile(strpath);
-            this->loadTables();
         }
     } else {
         this->statusBar.setText("Error while saving " + strpath);
@@ -1094,7 +1083,6 @@ void Fhex::dropEvent(QDropEvent *event) {
         const QUrl url = event->mimeData()->urls().at(0);
         QString fileName = url.toLocalFile();
         this->loadFile(fileName);
-        this->loadTables();
 
         this->compare(event->mimeData()->urls().at(1).toLocalFile());
     } else {
@@ -1117,7 +1105,6 @@ void Fhex::dropEvent(QDropEvent *event) {
         const QUrl url = event->mimeData()->urls().at(0);
         QString fileName = url.toLocalFile();
         this->loadFile(fileName);
-        this->loadTables();
 
         // ADD PATTERNS IF ENABLED
 
