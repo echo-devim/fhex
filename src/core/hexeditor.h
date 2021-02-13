@@ -28,9 +28,9 @@ public:
     atomic<unsigned long> bytesRead;
     atomic<unsigned long> bytesSaved;
     HexEditor();
-    HexEditor(string patternsFile);
-    HexEditor(string path, string patternsFile);
+    HexEditor(string path);
     ~HexEditor();
+    void loadPatterns(string patternsFile);
     bool loadFileAsync(string path, unsigned long start = 0, unsigned long offset = 0);
     bool saveFileAsync(string path);
     bool isFileLoaded();

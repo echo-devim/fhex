@@ -11,19 +11,9 @@ HexEditor::HexEditor()
     this->patternMatching = NULL;
 }
 
-HexEditor::HexEditor(string patternsFile)
+HexEditor::HexEditor(string path)
 {
     HexEditor();
-    this->patternMatching = new PatternMatching(patternsFile);
-}
-
-/*
- * ADDED patternsFile TO MAKE SIGNATURE DIFFERENT
- */
-
-HexEditor::HexEditor(string path, string patternsFile)
-{
-    (HexEditor(patternsFile));
     this->loadFileAsync(path);
 }
 
@@ -32,12 +22,19 @@ HexEditor::~HexEditor()
     delete this->patternMatching;
 }
 
+void HexEditor::loadPatterns(string patternsFile)
+{
+    if (this->patternMatching != NULL)
+        delete this->patternMatching;
+    this->patternMatching = new PatternMatching(patternsFile);
+}
+
 void HexEditor::loadFilePart(string path, unsigned long start, unsigned long offset) {
     ifstream ifs(path, ios::binary);
     ifs.seekg(start, ios::beg);
     long block_size;
     while (this->bytesRead < offset) {
-        block_size = 10485760; //10 MB
+        block_size = 104857600; //100 MB
         if (this->bytesRead + block_size > offset)
             block_size = offset - this->bytesRead;
         ifs.read(reinterpret_cast<char*>(this->current_data.data())+this->bytesRead, block_size);
@@ -89,6 +86,7 @@ bool HexEditor::loadFileAsync(string path, unsigned long start, unsigned long of
     this->loadedFileSize = offset;
 
     this->current_data.reserve(offset);
+    this->current_data.resize(offset);
     this->bytesRead = 0;
     // copies data into buffer using a detached thread (non-blocking)
     std::thread loader([this, path, start, offset](){ return this->loadFilePart(path, start, offset); });
@@ -227,7 +225,12 @@ string HexEditor::fromUintVectorToPrintableString(vector<uint8_t> &vec, long sta
 }
 
 vector<Match *> HexEditor::findPatterns() {
-    return this->patternMatching->hasMatches(this->current_data);
+    vector<Match *> tmp;
+    if (this->patternMatching != NULL) {
+        return this->patternMatching->hasMatches(this->current_data);
+    } else {
+        return tmp; //empty vector
+    }
 }
 
 vector<pair<unsigned long, uint8_t>>  HexEditor::compareTo(HexEditor &hexEditor) {

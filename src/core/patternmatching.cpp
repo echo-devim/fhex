@@ -5,7 +5,7 @@ PatternMatching::PatternMatching(string path)
     std::ifstream configFile(path);
 
     if (!configFile.good()) {
-        cerr << "The file " << path << " is not accessible." << endl;
+        cerr << "The file '" << path << "' is not accessible." << endl;
         return;
     }
 
@@ -48,7 +48,6 @@ vector<Match*> PatternMatching::hasMatches(vector<uint8_t> &content) {
             messages.push_back(e["message"].get<string>());
         }
     }
-
     //Search patterns in content
     unsigned long pos = 0;
     uint8_t *content_ptr = content.data(); //Use pointers to be faster

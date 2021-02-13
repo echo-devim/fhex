@@ -158,6 +158,7 @@ public slots:
     void on_vertical_scrollbar_change(int value);
     void on_horizontal_scrollbar_change(int value);
     void on_menu_toggle_patterns_click();
+    void on_menu_find_patterns_click();
     void on_menu_open_settings_click();
     void on_menu_open_patterns_click();
     void on_list_offset_item_click(QListWidgetItem *item);
