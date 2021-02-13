@@ -370,6 +370,10 @@ void Fhex::on_menu_open_settings_click() {
     QLineEdit *chunkSize = new QLineEdit(newWindow);
     chunkSize->setText(QString::number(this->file_size_limit));
     form->addRow(labelChunkSize, chunkSize);
+    QLabel *labelPatterns = new QLabel("Find patterns when a file is open:", newWindow);
+    QCheckBox *enablePatterns = new QCheckBox(newWindow);
+    enablePatterns->setChecked(this->patternsEnabled);
+    form->addRow(labelPatterns, enablePatterns);
     QPushButton *btnSave = new QPushButton("Save", newWindow);
     btnSave->setFixedWidth(80);
     QPushButton *btnCancel = new QPushButton("Cancel", newWindow);
@@ -380,10 +384,10 @@ void Fhex::on_menu_open_settings_click() {
     {
         newWindow->close();
     });
-    connect(btnSave, &QPushButton::clicked, [this, newWindow, chunkSize]()
+    connect(btnSave, &QPushButton::clicked, [this, newWindow, chunkSize, enablePatterns]()
     {
+        this->patternsEnabled = enablePatterns->isChecked();
         this->file_size_limit = chunkSize->text().toLongLong();
-        this->saveSettings(this->settingsFile);
         newWindow->close();
     });
     QWidget *mainWidget = new QWidget(newWindow);
