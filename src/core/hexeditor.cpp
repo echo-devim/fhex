@@ -49,6 +49,13 @@ bool HexEditor::isFileLoaded() {
     return (this->bytesRead == this->loadedFileSize);
 }
 
+bool HexEditor::isFileSaved() {
+    return (this->bytesSaved == this->fileSize);
+}
+
+/* Load the file asynchronously. The function can load a specific portion (chunk) of the file.
+   This feature is used to handle large files.
+*/
 bool HexEditor::loadFileAsync(string path, unsigned long start, unsigned long offset) {
     std::ifstream ifs(path, std::ios::binary);
 
@@ -83,7 +90,7 @@ bool HexEditor::loadFileAsync(string path, unsigned long start, unsigned long of
 
     this->current_data.reserve(offset);
     this->bytesRead = 0;
-    // copies data into buffer
+    // copies data into buffer using a detached thread (non-blocking)
     std::thread loader([this, path, start, offset](){ return this->loadFilePart(path, start, offset); });
     loader.detach();
 
@@ -124,6 +131,20 @@ void HexEditor::updateByte(uint8_t new_byte, unsigned long file_offset) {
     out.write(b, 1);
 }
 
+/* Save the file asynchronously. */
+bool HexEditor::saveFileAsync(string path) {
+    ofstream fout(path, ios::out | ios::binary);
+    if (!fout.good()) {
+        cerr << "The file " << path << " is not accessible." << endl;
+        return false;
+    }
+    fout.close();
+    std::thread savethread([this, path](){ return this->saveDataToFile(path); });
+    savethread.detach();
+    return true;
+}
+
+/* Thread function to save data to file. */
 bool HexEditor::saveDataToFile(string path) { //blocking function
     bool temp_file = false;
     //Check if we are trying to overwrite the file
@@ -133,10 +154,12 @@ bool HexEditor::saveDataToFile(string path) { //blocking function
         temp_file = true;
     }
     ofstream fout(path, ios::out | ios::binary);
+    // This should never happen, because the check is already performed by the main thread
     if (!fout.good()) {
         cerr << "The file " << path << " is not accessible." << endl;
         return false;
     }
+    this->bytesSaved = 0;
     if (this->loadedFileSize < this->fileSize) {
         //Copy initial and final part from original file, read the current chunk from the hexeditor
         std::ifstream ifs(this->current_path, std::ios::binary);
@@ -153,8 +176,10 @@ bool HexEditor::saveDataToFile(string path) { //blocking function
             ifs.read(reinterpret_cast<char*>(data.data()), block_size);
             fout.write(reinterpret_cast<char*>(data.data()), block_size);
             bytes_read += block_size;
+            this->bytesSaved += block_size;
         }
         fout.write(reinterpret_cast<char*>(this->current_data.data()), this->loadedFileSize);
+        this->bytesSaved += this->loadedFileSize;
         unsigned long offset = this->fileSize - (this->startOffset + this->loadedFileSize);
         if (offset > 0) {
             //Copy the final part from the original file
@@ -169,11 +194,13 @@ bool HexEditor::saveDataToFile(string path) { //blocking function
                 ifs.read(reinterpret_cast<char*>(data.data()), block_size);
                 fout.write(reinterpret_cast<char*>(data.data()), block_size);
                 bytes_read += block_size;
+                this->bytesSaved += block_size;
             }
          }
     } else {
         fout.write(reinterpret_cast<char*>(this->current_data.data()), this->loadedFileSize);
     }
+    this->bytesSaved = this->fileSize;
     fout.close();
     // if we used a temporary file, move it to the original path
     if (temp_file) {

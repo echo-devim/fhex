@@ -442,8 +442,8 @@ void Fhex::loadTables(long index) {
 
 void Fhex::updateOffsetBar() {
     qint64 offset = this->currentCursorPos;
-    this->offsetBar.setText("File Offset: 0x" + QString::number(offset, 16) + " (" + QString::number(offset) + ") | "
-                            + "File Size: " + QString::number(this->hexEditor->loadedFileSize / 1024.0, 'f', 2) + " KB");
+    this->offsetBar.setText("Offset: 0x" + QString::number(offset, 16) + " (" + QString::number(offset) + ") | "
+                            + "File Size: " + QString::number(this->hexEditor->fileSize / 1024.0, 'f', 2) + " KB");
 }
 
 void Fhex::updateOffsetBarWithSelection() {
@@ -453,7 +453,7 @@ void Fhex::updateOffsetBarWithSelection() {
         this->offsetBar.setText("First Offset: 0x" + QString::number(offsets.first, 16) + " (" + QString::number(offsets.first) + ") | "
                                 + "Last Offset: 0x" + QString::number(offsets.second, 16) + " (" + QString::number(offsets.second) + ") | "
                                 + "Selected bytes: " + QString::number(offsets.second - offsets.first + 1) + " | "
-                                + "File Size: " + QString::number(this->hexEditor->loadedFileSize / 1024.0, 'f', 2) + " KB");
+                                + "File Size: " + QString::number(this->hexEditor->fileSize / 1024.0, 'f', 2) + " KB");
     }
 }
 void Fhex::on_editor_mouse_click() {
@@ -598,8 +598,17 @@ bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset) {
     if (offset > FILE_SIZE_LIMIT) {
         string warning = "Cannot load the entire file into memory, please select the file chunk to view. Maximum amount of allowed MB in memory: " + to_string((FILE_SIZE_LIMIT/(1024*1024)));
         cerr << warning << endl;
-        this->statusBar.setText(warning.c_str());
+        QMessageBox msgBox;
+        msgBox.setText(QString(warning.c_str()));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.setIcon(QMessageBox::Icon::Warning);
+        msgBox.setWindowTitle(this->windowTitle());
+        msgBox.setWindowIcon(this->windowIcon());
+        msgBox.exec();
+        //chunkOpenFile will call loadFile again
         this->chunkOpenFile(path);
+        return false;
     }
     this->progressBar->setVisible(true);
     this->progressBar->setValue(0);
@@ -840,7 +849,6 @@ void Fhex::on_menu_file_save_click() {
     this->statusBar.setText("Saving file..");
     if (this->qhex->isModified()) {
         saveDataToFile(this->hexEditor->getCurrentPath());
-        this->statusBar.setText("File updated!");
     } else {
         this->statusBar.setText("No changes were made");
     }
@@ -970,7 +978,25 @@ void Fhex::saveDataToFile(string path) {
     QByteArray datacopy(this->qhex->data());
     this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().begin(), datacopy.begin(), datacopy.end());
     this->hexEditor->loadedFileSize = this->qhex->data().size();
-    this->hexEditor->saveDataToFile(path);
+
+    this->progressBar->setVisible(true);
+    this->progressBar->setValue(0);
+    this->statusBar.setText("Saving " + QString(path.c_str()));
+    bool res = this->hexEditor->saveFileAsync(path);
+    while(!this->hexEditor->isFileSaved()) {
+        int val = static_cast<int>(this->hexEditor->bytesSaved * 100 / this->hexEditor->fileSize);
+        this->progressBar->setValue(val);
+        this->statusBar.setText("Saving " + QString::number(val) + "%");
+        this->repaint();
+        this->app->processEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    this->progressBar->setVisible(false);
+    if (res) {
+        this->statusBar.setText("Saved " + QString(path.c_str()));
+    } else {
+        this->statusBar.setText("Error while saving " + QString(path.c_str()));
+    }
 }
 
 void Fhex::on_menu_convert_bytes_click() {

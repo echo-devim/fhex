@@ -55,7 +55,7 @@
 #include "core/hexeditor.h"
 #include "fasm.h"
 
-#define FILE_SIZE_LIMIT 1073741824 //1GB is the maximum amount of bytes that the hex editor can load into memory
+#define FILE_SIZE_LIMIT 1048576 //1073741824 //1GB is the maximum amount of bytes that the hex editor can load into memory
 #define MAX_DIFF_BYTES 3000
 #define DEFAULT_UNPRINTABLE_CHAR "."
 #define CHUNK_SIZE 1024
