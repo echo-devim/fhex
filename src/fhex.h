@@ -55,7 +55,6 @@
 #include "core/hexeditor.h"
 #include "fasm.h"
 
-#define FILE_SIZE_LIMIT 1048576 //1073741824 //1GB is the maximum amount of bytes that the hex editor can load into memory
 #define MAX_DIFF_BYTES 3000
 #define DEFAULT_UNPRINTABLE_CHAR "."
 #define CHUNK_SIZE 1024
@@ -93,6 +92,7 @@ private:
     bool patternsEnabled;
 
     Fasm *fasm;
+    unsigned long file_size_limit = 1073741824; //1GB is the maximum amount of bytes that the hex editor can load into memory (configurable)
     qint64 lastCursorPos = 0;
     qint64 currentCursorPos = 0;
     QChartView *binChartView;
@@ -159,12 +159,9 @@ public slots:
     void on_menu_open_text_viewer_click();
     void on_vertical_scrollbar_change(int value);
     void on_horizontal_scrollbar_change(int value);
-
     void on_menu_toggle_patterns_click();
-
-    // CHANGED FROM on_menu_find_patterns_click()
+    void on_menu_open_settings_click();
     void on_menu_open_patterns_click();
-
     void on_list_offset_item_click(QListWidgetItem *item);
     void on_menu_offset_list_click();
     void on_menu_new_file_click();

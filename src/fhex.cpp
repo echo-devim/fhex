@@ -74,6 +74,9 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
         if (!jconfig["Patterns"]["enabled"].is_null()) {
             patternsEnabled = jconfig["Patterns"]["enabled"].get<bool>();
         }
+        if (!jconfig["FileSizeLimit"].is_null()) {
+            this->file_size_limit = jconfig["FileSizeLimit"].get<unsigned long>();
+        }
     }
 
     /**
@@ -139,8 +142,6 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     QAction *openTextViewer = new QAction(QIcon::fromTheme("text-field"), "&Open Text Viewer", this);
     openTextViewer->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_T));
     edit->addAction(openTextViewer);
-
-    // Added
     QAction *openPatternsMenu = new QAction(QIcon::fromTheme("folder-open"), "&Open Pattern Definition", this);
     openPatternsMenu->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_D));
     edit->addAction(openPatternsMenu);
@@ -156,6 +157,8 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     QAction *menuBinaryChart = new QAction(QIcon::fromTheme("image"), "Show/Hide &Binary Chart", this);
     menuBinaryChart->setShortcut(QKeySequence(Qt::Key_F1));
     edit->addAction(menuBinaryChart);
+    QAction *openSettings = new QAction(QIcon::fromTheme("preferences-other"), "&Preferences", this);
+    edit->addAction(openSettings);
 
     connect(menuBinaryChart, &QAction::triggered, this, &Fhex::on_menu_binchart_click);
     connect(newFile, &QAction::triggered, this, &Fhex::on_menu_new_file_click);
@@ -164,9 +167,8 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     // Toggle patterns display On/Off
     connect(togglePatternsMenu, &QAction::triggered, this, &Fhex::on_menu_toggle_patterns_click);
 
-    // Added
     connect(openPatternsMenu, &QAction::triggered, this, &Fhex::on_menu_open_patterns_click);
-
+    connect(openSettings, &QAction::triggered, this, &Fhex::on_menu_open_settings_click);
     connect(openTextViewer, &QAction::triggered, this, &Fhex::on_menu_open_text_viewer_click);
     connect(gotoOffset, &QAction::triggered, this, &Fhex::on_menu_goto_offset_click);
     connect(diffFile, &QAction::triggered, this, &Fhex::on_menu_file_diff_click);
@@ -353,6 +355,41 @@ Fhex::~Fhex()
     if (this->fasm != nullptr) {
         delete this->fasm;
     }
+}
+
+void Fhex::on_menu_open_settings_click() {
+    QMainWindow *newWindow = new QMainWindow(this);
+    newWindow->setWindowTitle("Preferences");
+    newWindow->setWindowFlags(Qt::Dialog | Qt::Drawer);
+    newWindow->layout()->setSizeConstraint( QLayout::SetFixedSize );
+    newWindow->setFixedWidth(600);
+    newWindow->setFixedHeight(400);
+    QFormLayout *form = new QFormLayout(newWindow);
+    QLabel *labelChunkSize = new QLabel("Maximum amount of bytes loaded into memory:", newWindow);
+    labelChunkSize->setWordWrap(true);
+    QLineEdit *chunkSize = new QLineEdit(newWindow);
+    chunkSize->setText(QString::number(this->file_size_limit));
+    form->addRow(labelChunkSize, chunkSize);
+    QPushButton *btnSave = new QPushButton("Save", newWindow);
+    btnSave->setFixedWidth(80);
+    QPushButton *btnCancel = new QPushButton("Cancel", newWindow);
+    btnCancel->setFixedWidth(80);
+    form->addRow(btnSave, btnCancel);
+
+    connect(btnCancel, &QPushButton::clicked, [newWindow]()
+    {
+        newWindow->close();
+    });
+    connect(btnSave, &QPushButton::clicked, [this, newWindow, chunkSize]()
+    {
+        this->file_size_limit = chunkSize->text().toLongLong();
+        this->saveSettings(this->settingsFile);
+        newWindow->close();
+    });
+    QWidget *mainWidget = new QWidget(newWindow);
+    mainWidget->setLayout(form);
+    newWindow->setCentralWidget(mainWidget);
+    newWindow->show();
 }
 
 void Fhex::on_menu_about_click() {
@@ -595,8 +632,8 @@ bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset) {
     QFileInfo finfo = QFileInfo(path);
     if (offset == 0)
         offset = finfo.size();
-    if (offset > FILE_SIZE_LIMIT) {
-        string warning = "Cannot load the entire file into memory, please select the file chunk to view. Maximum amount of allowed MB in memory: " + to_string((FILE_SIZE_LIMIT/(1024*1024)));
+    if (offset > this->file_size_limit) {
+        string warning = "Cannot load the entire file into memory, please select the file chunk to view. Maximum amount of allowed MB in memory: " + to_string((this->file_size_limit/(1024*1024)));
         cerr << warning << endl;
         QMessageBox msgBox;
         msgBox.setText(QString(warning.c_str()));
@@ -701,11 +738,11 @@ void Fhex::chunkOpenFile(QString fpath) {
     QSpinBox *startOffset = new QSpinBox(chunkWindow);
     startOffset->setFixedHeight(30);
     startOffset->setMinimum(0);
-    startOffset->setMaximum(FILE_SIZE_LIMIT);
+    startOffset->setMaximum(this->file_size_limit);
     QSpinBox *lengthOffset = new QSpinBox(chunkWindow);
     lengthOffset->setFixedHeight(30);
     lengthOffset->setMinimum(1);
-    lengthOffset->setMaximum(FILE_SIZE_LIMIT);
+    lengthOffset->setMaximum(this->file_size_limit);
     QPushButton *btnLoad = new QPushButton("Load", chunkWindow);
     QHBoxLayout *buttonsLayout = new QHBoxLayout(chunkWindow);
     QWidget *container = new QWidget(chunkWindow);
@@ -1001,7 +1038,7 @@ void Fhex::saveDataToFile(string path, bool loadfile) {
     while(!this->hexEditor->isFileSaved() && res) {
         int val = 0;
         if (this->hexEditor->fileSize != 0)
-            static_cast<int>(this->hexEditor->bytesSaved * 100 / this->hexEditor->fileSize);
+            val = static_cast<int>(this->hexEditor->bytesSaved * 100 / this->hexEditor->fileSize);
         this->progressBar->setValue(val);
         this->statusBar.setText("Saving " + QString::number(val) + "%");
         this->repaint();
@@ -1099,7 +1136,7 @@ void Fhex::on_menu_file_new_window_click() {
 }
 
 /*
- * SAVE WINDOW SIZE AND POSITION SETTINGS
+ * SAVE SETTINGS
  */
 
 void Fhex::saveSettings(string filePath){
@@ -1111,6 +1148,7 @@ void Fhex::saveSettings(string filePath){
     jsettings["WindowSettings"]["maximized"] = this->windowState().testFlag(Qt::WindowMaximized);
     jsettings["Patterns"]["enabled"] = patternsEnabled;
     jsettings["Patterns"]["file"] = patternsFile;
+    jsettings["FileSizeLimit"] = this->file_size_limit;
 
     // Merge changes
     jconfig.merge_patch(jsettings);
