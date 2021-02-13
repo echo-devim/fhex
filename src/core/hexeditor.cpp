@@ -83,7 +83,7 @@ bool HexEditor::loadFileAsync(string path, unsigned long start, unsigned long of
     if (offset == 0)
         offset = this->fileSize - start;
 
-    if ((start + offset) > this->fileSize)
+    if ((start + offset) >= this->fileSize)
         offset = this->fileSize - start;
 
     this->loadedFileSize = offset;

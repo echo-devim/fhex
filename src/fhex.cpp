@@ -616,8 +616,10 @@ bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset) {
     this->statusBar.setText("Loading " + path);
     auto t1 = std::chrono::high_resolution_clock::now();
     bool res = this->hexEditor->loadFileAsync(path.toStdString(), start, offset);
-    while(!this->hexEditor->isFileLoaded()) {
-        int val = static_cast<int>(this->hexEditor->bytesRead * 100 / this->hexEditor->loadedFileSize);
+    while(!this->hexEditor->isFileLoaded() && res) {
+        int val = 0;
+        if (this->hexEditor->loadedFileSize > 0)
+            val = static_cast<int>(this->hexEditor->bytesRead * 100 / this->hexEditor->loadedFileSize);
         this->progressBar->setValue(val);
         this->statusBar.setText("Loading " + QString::number(val) + "%");
         this->repaint();
@@ -846,11 +848,15 @@ void Fhex::compare(QString filename) {
 }
 
 void Fhex::on_menu_file_save_click() {
-    this->statusBar.setText("Saving file..");
-    if (this->qhex->isModified()) {
-        saveDataToFile(this->hexEditor->getCurrentPath());
+    if (this->hexEditor->getCurrentPath() != "") {
+        this->statusBar.setText("Saving file..");
+        if (this->qhex->isModified()) {
+            saveDataToFile(this->hexEditor->getCurrentPath());
+        } else {
+            this->statusBar.setText("No changes were made");
+        }
     } else {
-        this->statusBar.setText("No changes were made");
+        this->on_menu_file_save_as_click();
     }
 }
 
@@ -967,12 +973,14 @@ void Fhex::on_menu_file_save_as_click() {
         tr("Save File"), path,
         tr("All Files (*)"));
     if (fileName != "") {
-        saveDataToFile(fileName.toStdString());
+        saveDataToFile(fileName.toStdString(), true);
         this->statusBar.setText("File saved as " + fileName);
+    } else {
+        this->statusBar.setText("");
     }
 }
 
-void Fhex::saveDataToFile(string path) {
+void Fhex::saveDataToFile(string path, bool loadfile) {
     this->hexEditor->getCurrentData().clear();
     this->hexEditor->getCurrentData().shrink_to_fit();
     QByteArray datacopy(this->qhex->data());
@@ -981,10 +989,13 @@ void Fhex::saveDataToFile(string path) {
 
     this->progressBar->setVisible(true);
     this->progressBar->setValue(0);
-    this->statusBar.setText("Saving " + QString(path.c_str()));
+    QString strpath = QString(path.c_str());
+    this->statusBar.setText("Saving " + strpath);
     bool res = this->hexEditor->saveFileAsync(path);
-    while(!this->hexEditor->isFileSaved()) {
-        int val = static_cast<int>(this->hexEditor->bytesSaved * 100 / this->hexEditor->fileSize);
+    while(!this->hexEditor->isFileSaved() && res) {
+        int val = 0;
+        if (this->hexEditor->fileSize != 0)
+            static_cast<int>(this->hexEditor->bytesSaved * 100 / this->hexEditor->fileSize);
         this->progressBar->setValue(val);
         this->statusBar.setText("Saving " + QString::number(val) + "%");
         this->repaint();
@@ -993,9 +1004,14 @@ void Fhex::saveDataToFile(string path) {
     }
     this->progressBar->setVisible(false);
     if (res) {
-        this->statusBar.setText("Saved " + QString(path.c_str()));
+        this->statusBar.setText("Saved " + strpath);
+        if (loadfile) {
+            //Open the saved file
+            this->loadFile(strpath);
+            this->loadTables();
+        }
     } else {
-        this->statusBar.setText("Error while saving " + QString(path.c_str()));
+        this->statusBar.setText("Error while saving " + strpath);
     }
 }
 

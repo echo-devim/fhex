@@ -78,7 +78,7 @@ public:
 
 private:
     // RELEASE VERSION
-    string version = "2.4.2";
+    string version = "3.0.0";
 
     // JSON
     json jconfig;
@@ -132,7 +132,7 @@ private:
     void addFloatingLabel(qint64 offset, int len, QString text, QString style = "", bool addComment = false);
     void clearFloatingLabels();
     void findPatterns();
-    void saveDataToFile(string path);
+    void saveDataToFile(string path, bool loadfile=false);
     void loadBinChart();
     void updateOffsetBar();
     void updateOffsetBarWithSelection();
