@@ -367,6 +367,7 @@ void Fhex::on_menu_open_settings_click() {
     QFormLayout *form = new QFormLayout(newWindow);
     QLabel *labelChunkSize = new QLabel("Maximum amount of bytes loaded into memory:", newWindow);
     labelChunkSize->setWordWrap(true);
+    labelChunkSize->setFixedWidth(300);
     QLineEdit *chunkSize = new QLineEdit(newWindow);
     chunkSize->setText(QString::number(this->file_size_limit));
     form->addRow(labelChunkSize, chunkSize);
@@ -1009,7 +1010,7 @@ void Fhex::saveDataToFile(string path, bool loadfile) {
     //TODO: Improve this part
     //At the moment we clear the data in the backend and copy the modified data from the ui
     if (static_cast<unsigned long>(this->qhex->data().size()) != this->hexEditor->loadedFileSize) {
-        //In case the user has added/removed bytes, we cleanup everything, otherwise we overwrite old data.
+        //Cleanup everything, otherwise we overwrite old data.
         this->hexEditor->getCurrentData().clear();
         this->hexEditor->getCurrentData().shrink_to_fit();
     }

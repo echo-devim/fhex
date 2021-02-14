@@ -131,19 +131,19 @@ void HexEditor::updateByte(uint8_t new_byte, unsigned long file_offset) {
 
 /* Save the file asynchronously. */
 bool HexEditor::saveFileAsync(string path) {
-    ofstream fout(path, ios::out | ios::binary);
-    if (!fout.good()) {
+    ifstream ifs(path, ios::in | ios::binary);
+    if (!ifs.good()) {
         cerr << "The file " << path << " is not accessible." << endl;
         return false;
     }
-    fout.close();
+    ifs.close();
     std::thread savethread([this, path](){ return this->saveDataToFile(path); });
     savethread.detach();
     return true;
 }
 
 /* Thread function to save data to file. */
-bool HexEditor::saveDataToFile(string path) { //blocking function
+bool HexEditor::saveDataToFile(string path) {
     bool temp_file = false;
     //Check if we are trying to overwrite the file
     if (this->current_path == path) {
