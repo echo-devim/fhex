@@ -170,7 +170,7 @@ bool HexEditor::saveDataToFile(string path) {
             if (bytes_read + block_size > this->startOffset)
                 block_size = this->startOffset - bytes_read;
             data.reserve(block_size);
-            data.clear();
+            //data.clear();
             ifs.read(reinterpret_cast<char*>(data.data()), block_size);
             fout.write(reinterpret_cast<char*>(data.data()), block_size);
             bytes_read += block_size;
@@ -188,7 +188,7 @@ bool HexEditor::saveDataToFile(string path) {
                 if (bytes_read + block_size > offset)
                     block_size = offset - bytes_read;
                 data.reserve(block_size);
-                data.clear();
+                //data.clear();
                 ifs.read(reinterpret_cast<char*>(data.data()), block_size);
                 fout.write(reinterpret_cast<char*>(data.data()), block_size);
                 bytes_read += block_size;

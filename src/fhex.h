@@ -43,7 +43,6 @@
 #include <QLineSeries>
 #include <QMessageBox>
 #include <QFileInfo>
-#include <QSpinBox>
 #include <iostream>
 #include <chrono>
 #include <thread>

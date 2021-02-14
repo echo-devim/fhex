@@ -728,14 +728,12 @@ void Fhex::chunkOpenFile(QString fpath) {
     labelStart->setFixedHeight(20);
     QLabel *labelOffset = new QLabel("Length offset:", chunkWindow);
     labelOffset->setFixedHeight(20);
-    QSpinBox *startOffset = new QSpinBox(chunkWindow);
+    QLineEdit *startOffset = new QLineEdit(chunkWindow);
     startOffset->setFixedHeight(30);
-    startOffset->setMinimum(0);
-    startOffset->setMaximum(this->file_size_limit);
-    QSpinBox *lengthOffset = new QSpinBox(chunkWindow);
+    startOffset->setText("0");
+    QLineEdit *lengthOffset = new QLineEdit(chunkWindow);
     lengthOffset->setFixedHeight(30);
-    lengthOffset->setMinimum(1);
-    lengthOffset->setMaximum(this->file_size_limit);
+    lengthOffset->setText("1");
     QPushButton *btnLoad = new QPushButton("Load", chunkWindow);
     QHBoxLayout *buttonsLayout = new QHBoxLayout(chunkWindow);
     QWidget *container = new QWidget(chunkWindow);
@@ -752,8 +750,8 @@ void Fhex::chunkOpenFile(QString fpath) {
     mainLayout->setSpacing(4);
     connect(btnLoad, &QPushButton::clicked, [chunkWindow, startOffset, lengthOffset, &start, &offset]()
     {
-        start = startOffset->value();
-        offset = lengthOffset->value();
+        start = startOffset->text().toLongLong();
+        offset = lengthOffset->text().toLongLong();
         chunkWindow->close();
     });
     connect(btnOpen, &QPushButton::clicked, [this, filepath]()
