@@ -1015,7 +1015,9 @@ void Fhex::saveDataToFile(string path, bool loadfile) {
     QByteArray datacopy(this->qhex->data());
     this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().begin(), datacopy.begin(), datacopy.end());
     //Update the size, the user could have added/removed bytes
-    this->hexEditor->loadedFileSize = this->qhex->data().size();
+    long diffbytes = this->hexEditor->getCurrentData().size() - this->hexEditor->loadedFileSize;
+    this->hexEditor->loadedFileSize = this->hexEditor->getCurrentData().size();
+    this->hexEditor->fileSize += diffbytes;
 
     this->progressBar->setVisible(true);
     this->progressBar->setValue(0);
