@@ -131,12 +131,17 @@ void HexEditor::updateByte(uint8_t new_byte, unsigned long file_offset) {
 
 /* Save the file asynchronously. */
 bool HexEditor::saveFileAsync(string path) {
-    ifstream ifs(path, ios::in | ios::binary);
-    if (!ifs.good()) {
+    /* Open the file in append mode:
+     * - if the file exists, we are overwriting it checking that everything is ok
+     * - if the file doesn't exist, we are creating it checking that we have the right permissions
+     */
+    fstream fs(path, fstream::out | fstream::app | fstream::ate | ios::binary);
+    if (!fs.good()) {
         cerr << "The file " << path << " is not accessible." << endl;
         return false;
     }
-    ifs.close();
+    fs.close();
+    this->fileSaved = false;
     std::thread savethread([this, path](){ return this->saveDataToFile(path); });
     savethread.detach();
     return true;
@@ -198,13 +203,16 @@ bool HexEditor::saveDataToFile(string path) {
     } else {
         fout.write(reinterpret_cast<char*>(this->current_data.data()), this->loadedFileSize);
     }
-    this->bytesSaved = this->fileSize;
     fout.close();
     // if we used a temporary file, move it to the original path
     if (temp_file) {
         remove(this->current_path.c_str());
         rename(path.c_str(), this->current_path.c_str());
     }
+    this->bytesSaved = this->fileSize;
+    //This must be the last instruction, because we have other threads (UI) checking the value of fileSaved
+    //Thus, who is polling the variable now knows that we have finished
+    this->fileSaved = true;
     return true;
 }
 

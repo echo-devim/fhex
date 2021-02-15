@@ -27,6 +27,7 @@ public:
     unsigned long startOffset;
     atomic<unsigned long> bytesRead;
     atomic<unsigned long> bytesSaved;
+    atomic<bool> fileSaved;
     HexEditor();
     HexEditor(string path);
     ~HexEditor();

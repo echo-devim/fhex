@@ -1036,7 +1036,11 @@ void Fhex::saveDataToFile(string path, bool loadfile) {
     if (res) {
         this->statusBar.setText("Saved " + strpath);
         if (loadfile) {
-            //Open the saved file
+            //Open the saved file after the backend finished to write it
+            //Evaluate if in this case it is better to use events instead of polling
+            while (!this->hexEditor->fileSaved) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
             this->loadFile(strpath);
         }
     } else {
