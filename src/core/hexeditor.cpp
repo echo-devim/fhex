@@ -71,7 +71,7 @@ bool HexEditor::loadFileAsync(string path, unsigned long start, unsigned long of
     this->fileSize = ifs.tellg();
     ifs.seekg(0, std::ios::beg);
 
-    if (start >= this->fileSize) {
+    if (start > this->fileSize) {
         cerr << "Cannot read file from offset: " << start << endl;
         return false;
     }
