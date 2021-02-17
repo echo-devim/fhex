@@ -1007,11 +1007,10 @@ void Fhex::on_menu_file_save_as_click() {
 void Fhex::saveDataToFile(string path, bool loadfile) {
     //TODO: Improve this part
     //At the moment we clear the data in the backend and copy the modified data from the ui
-    if (static_cast<unsigned long>(this->qhex->data().size()) != this->hexEditor->loadedFileSize) {
-        //Cleanup everything, otherwise we overwrite old data.
-        this->hexEditor->getCurrentData().clear();
-        this->hexEditor->getCurrentData().shrink_to_fit();
-    }
+    //Cleanup everything
+    this->hexEditor->getCurrentData().clear();
+    this->hexEditor->getCurrentData().shrink_to_fit();
+    //Now copy from the front-end
     QByteArray datacopy(this->qhex->data());
     this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().begin(), datacopy.begin(), datacopy.end());
     //Update the size, the user could have added/removed bytes
