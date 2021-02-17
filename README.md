@@ -10,7 +10,7 @@ This project is based on **qhexedit2**, **capstone** and **keystone** engines. N
 
 ## Features
 
-* Chunks loader - Used to load only a portion of large files without exhaust the memory (use alt + left/right arrows to move among chunks)
+* Chunks loader - Used to load only a portion of large files without exhaust the memory (use alt + left/right arrows to move among chunks). Please note that in chunk mode, all the operations (e.g. search) applies only to the current chunk except for file save (the entire file is saved). However, each time you edit a chunk, save it before to move to another chunk, otherwise you will lose your changes.
 * Search and replace (UTF-8, HEX, regex, reverse search supported) [`CTRL + F`]
 * Colored output (white spaces, ASCII characters, 0xFF, UTF-8 and NULL bytes have different colors)
 * Interpret selected bytes as integer, long, unsigned long [`CTRL + B`]
