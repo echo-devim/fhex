@@ -16,7 +16,7 @@ This project is based on **qhexedit2**, **capstone** and **keystone** engines. N
 * Interpret selected bytes as integer, long, unsigned long [`CTRL + B`]
 * Copy & Paste  [`CTRL + C` and  `CTRL + V`]
 * Copy selected unicode characters [`CTRL + Space`]
-* Zeroing all the selected bytes [`CTRL + D`]
+* Zeroing all the selected bytes [`Delete` or `CTRL + D`]
 * Undo & Redo [`CTRL + Z` and `CTRL + Y`]
 * Drag & Drop (*Hint:* Drag&Drop two files to diff them)
 * Overwrite the same file or create a new one  [`CTRL + S`]

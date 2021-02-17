@@ -138,7 +138,6 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     openTextViewer->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_T));
     edit->addAction(openTextViewer);
     QAction *openPatternsMenu = new QAction(QIcon::fromTheme("folder-open"), "&Open Patterns File", this);
-    openPatternsMenu->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_D));
     edit->addAction(openPatternsMenu);
     QAction *findPatternsMenu = new QAction(QIcon::fromTheme("find"), "&Find Patterns", this);
     findPatternsMenu->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_P));
