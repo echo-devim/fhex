@@ -109,6 +109,7 @@ private:
     QListWidget *listOffsets;
     HexEditor *hexEditor;
     QHexEdit *qhex;
+    short fontSize;
     QFrame *convertBox;
     QLabel statusBar;
     QLabel offsetBar;
@@ -136,6 +137,7 @@ private:
     void updateOffsetBar();
     void updateOffsetBarWithSelection();
     void chunkOpenFile(QString fpath = "");
+    void updateUI();
 
 public slots:
     void on_editor_mouse_click();

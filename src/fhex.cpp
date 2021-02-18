@@ -47,6 +47,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     int x_position = screenSize.width() / 2 - width / 2;
     int y_position = screenSize.height() / 2 - height / 2;
     bool maximized = false;
+    this->fontSize = 12;
 
     // Pattern
     patternsEnabled = false;
@@ -76,6 +77,9 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
         }
         if (!jconfig["FileSizeLimit"].is_null()) {
             this->file_size_limit = jconfig["FileSizeLimit"].get<unsigned long>();
+        }
+        if (!jconfig["FontSize"].is_null()) {
+            this->fontSize = jconfig["FontSize"].get<short>();
         }
     }
 
@@ -212,6 +216,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     qhex->setAddressAreaColor(color_dark_gray);
     qhex->setSelectionColor(color_dark_yellow);
     qhex->setHighlightingColor(color_dark_violet);
+    qhex->setFont(QFont("Monospace", this->fontSize));
 
     gridLayout->addWidget(qhex, 1, 0, 1, 2);
 
@@ -530,6 +535,16 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
         } else if ((event->key() == Qt::Key_Left) && QApplication::keyboardModifiers().testFlag(Qt::AltModifier)) {
             //Go to the previous chunk
             this->loadFile(this->hexEditor->getCurrentPath().c_str(), this->startOffset-this->lengthOffset, this->lengthOffset, true);
+        } else if ((event->key() == Qt::Key_Minus) && QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
+            if (this->fontSize > 2)
+                this->fontSize -= 1;
+            this->qhex->setFont(QFont("Monospace", this->fontSize));
+            this->updateUI();
+        } else if ((event->key() == Qt::Key_Plus) && QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
+            if (this->fontSize < 40)
+                this->fontSize += 1;
+            this->qhex->setFont(QFont("Monospace", this->fontSize));
+            this->updateUI();
         }
         updateOffsetBar();
         updateOffsetBarWithSelection();
@@ -663,13 +678,17 @@ bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset, boo
         this->setWindowTitle("Fhex - " + QString(this->hexEditor->getCurrentPath().c_str()));
         loadBinChart();
         if (updateUI) {
-            std::thread t(&Fhex::backgroundUpdateHexWidget, this);
-            t.detach();
+            this->updateUI();
         }
     } else {
         this->statusBar.setText("Error while opening " + path);
     }
     return res;
+}
+
+void Fhex::updateUI() {
+    std::thread t(&Fhex::backgroundUpdateHexWidget, this);
+    t.detach();
 }
 
 void Fhex::loadBinChart() {
@@ -1127,9 +1146,10 @@ void Fhex::saveSettings(string filePath){
     jsettings["WindowSettings"]["x_position"] = windowPosition.x();
     jsettings["WindowSettings"]["y_position"] = windowPosition.y();
     jsettings["WindowSettings"]["maximized"] = this->windowState().testFlag(Qt::WindowMaximized);
-    jsettings["Patterns"]["enabled"] = patternsEnabled;
-    jsettings["Patterns"]["file"] = patternsFile;
+    jsettings["Patterns"]["enabled"] = this->patternsEnabled;
+    jsettings["Patterns"]["file"] = this->patternsFile;
     jsettings["FileSizeLimit"] = this->file_size_limit;
+    jsettings["FontSize"] = this->fontSize;
 
     // Merge changes
     jconfig.merge_patch(jsettings);
