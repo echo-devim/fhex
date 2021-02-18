@@ -536,12 +536,12 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
         } else if ((event->key() == Qt::Key_Left) && QApplication::keyboardModifiers().testFlag(Qt::AltModifier)) {
             //Go to the previous chunk
             this->loadFile(this->hexEditor->getCurrentPath().c_str(), this->startOffset-this->lengthOffset, this->lengthOffset, true);
-        } else if ((event->key() == Qt::Key_Minus) && QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
+        } else if (((event->key() == Qt::Key_Minus) || (event->key() == Qt::Key_Down)) && QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
             if (this->fontSize > 2)
                 this->fontSize -= 1;
             this->qhex->setFont(QFont("Monospace", this->fontSize));
             this->updateUI();
-        } else if ((event->key() == Qt::Key_Plus) && QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
+        } else if (((event->key() == Qt::Key_Plus) || (event->key() == Qt::Key_Up)) && QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
             if (this->fontSize < 40)
                 this->fontSize += 1;
             this->qhex->setFont(QFont("Monospace", this->fontSize));

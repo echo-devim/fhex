@@ -32,7 +32,7 @@ This project is based on **qhexedit2**, **capstone** and **keystone** engines. N
 * Pattern Matching Engine (see later for details)
 * Disassebler based on Capstone Engine [`F4`]
 * Assembler based on Keystone Engine [`F4`]
-* Zoom-Out/Zoom-In bytes view (`CTRL + -/+`)
+* Zoom-Out/Zoom-In bytes view (`CTRL + Up/Down` or `CTRL + -/+`)
 * Shortcuts for all these features
 
 ## Pattern Matching Engine
