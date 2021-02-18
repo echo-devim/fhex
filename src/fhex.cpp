@@ -835,26 +835,28 @@ void Fhex::compare(QString filename) {
     this->progressBar->setValue(0);
     this->statusBar.setText("Comparing file.. please wait");
 
-    future<vector<pair<unsigned long, uint8_t>>> fut_res = async([this, filename]()
+    vector<pair<unsigned long, uint8_t>> res;
+    this->hexEditor->initCompare();
+    std::thread th([this, filename, &res]()
     {
         HexEditor newHexEditor;
         newHexEditor.loadFileAsync(filename.toStdString());
         while(!newHexEditor.isFileLoaded()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-        return this->hexEditor->compareTo(newHexEditor);
+        res = this->hexEditor->compareTo(newHexEditor);
     });
 
-    while (fut_res.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
+    while (!this->hexEditor->hasCompared()) {
         int val = (this->hexEditor->bytesRead * 100) / this->hexEditor->loadedFileSize;
         this->progressBar->setValue(val);
         this->repaint();
         this->app->processEvents();
     }
+    th.join();
 
     this->progressBar->setVisible(false);
 
-    vector<pair<unsigned long, uint8_t>> res = fut_res.get();
     unsigned long changes = res.size();
     unsigned long start_offset = 0;
     unsigned long offset = 0;

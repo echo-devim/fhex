@@ -28,6 +28,7 @@ public:
     atomic<unsigned long> bytesRead;
     atomic<unsigned long> bytesSaved;
     atomic<bool> fileSaved;
+    atomic<bool> fileCompared;
     HexEditor();
     HexEditor(string path);
     ~HexEditor();
@@ -44,6 +45,8 @@ public:
     string getCurrentPath();
     vector<Match *> findPatterns();
     vector<pair<unsigned long, uint8_t>> compareTo(HexEditor &hexEditor);
+    void initCompare();
+    bool hasCompared();
 
 private:
     PatternMatching *patternMatching;

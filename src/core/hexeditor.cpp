@@ -241,6 +241,14 @@ vector<Match *> HexEditor::findPatterns() {
     }
 }
 
+void HexEditor::initCompare() {
+    this->fileCompared = false;
+}
+
+bool HexEditor::hasCompared() {
+    return this->fileCompared;
+}
+
 vector<pair<unsigned long, uint8_t>>  HexEditor::compareTo(HexEditor &hexEditor) {
     vector<pair<unsigned long, uint8_t>> diff_bytes;
 
@@ -254,8 +262,8 @@ vector<pair<unsigned long, uint8_t>>  HexEditor::compareTo(HexEditor &hexEditor)
         if (this->getCurrentData()[i] != byte_new) {
             diff_bytes.push_back(pair<unsigned long, uint8_t>(i, byte_new));
         }
-        this->bytesRead = i;
     }
+    this->fileCompared = true;
 
     return diff_bytes;
 }
