@@ -509,7 +509,11 @@ void Fhex::updateOffsetBarWithSelection() {
 void Fhex::on_editor_mouse_click() {
     currentCursorPos = this->qhex->cursorPosition() / 2;
     if (QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier)) {
-        this->qhex->setSelection(lastCursorPos, this->qhex->cursorPosition() / 2);
+        qint64 currpos = this->qhex->cursorPosition() / 2;
+        if (lastCursorPos < currpos)
+            this->qhex->setSelection(lastCursorPos, currpos);
+        else
+            this->qhex->setSelection(currpos, lastCursorPos);
         updateOffsetBarWithSelection();
     } else {
         updateOffsetBar();
