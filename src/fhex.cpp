@@ -48,7 +48,11 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     int y_position = screenSize.height() / 2 - height / 2;
     bool maximized = false;
     this->fontSize = 12;
-
+#ifdef Q_OS_WIN32
+    this->fontName = "Courier";
+#else
+    this->fontName = "Monospace";
+#endif
     // Pattern
     patternsEnabled = false;
 
@@ -78,8 +82,11 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
         if (!jconfig["FileSizeLimit"].is_null()) {
             this->file_size_limit = jconfig["FileSizeLimit"].get<unsigned long>();
         }
-        if (!jconfig["FontSize"].is_null()) {
-            this->fontSize = jconfig["FontSize"].get<short>();
+        if (!jconfig["Font"]["Size"].is_null()) {
+            this->fontSize = jconfig["Font"]["Size"].get<short>();
+        }
+        if (!jconfig["Font"]["Name"].is_null()) {
+            this->fontName = jconfig["Font"]["Name"].get<string>().c_str();
         }
     }
 
@@ -216,7 +223,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     qhex->setAddressAreaColor(color_dark_gray);
     qhex->setSelectionColor(color_dark_yellow);
     qhex->setHighlightingColor(color_dark_violet);
-    qhex->setFont(QFont("Monospace", this->fontSize));
+    qhex->setFont(QFont(this->fontName, this->fontSize));
 
     gridLayout->addWidget(qhex, 1, 0, 1, 2);
 
@@ -384,6 +391,11 @@ void Fhex::on_menu_open_settings_click() {
     selectPatternsFile->setFixedWidth(80);
     form->addRow(labelPatternsFile);
     form->addRow(patternsFile, selectPatternsFile);
+    QLabel *labelFontName = new QLabel("Font Name:", newWindow);
+    QLineEdit *fontName = new QLineEdit(newWindow);
+    fontName->setText(this->fontName);
+    fontName->setFixedWidth(300);
+    form->addRow(labelFontName, fontName);
     QPushButton *btnSave = new QPushButton("Save", newWindow);
     btnSave->setFixedWidth(80);
     QPushButton *btnCancel = new QPushButton("Cancel", newWindow);
@@ -399,11 +411,12 @@ void Fhex::on_menu_open_settings_click() {
     {
         newWindow->close();
     });
-    connect(btnSave, &QPushButton::clicked, [this, newWindow, chunkSize, enablePatterns, patternsFile]()
+    connect(btnSave, &QPushButton::clicked, [this, newWindow, chunkSize, enablePatterns, patternsFile, fontName]()
     {
         this->patternsFile = patternsFile->text().toStdString();
         this->patternsEnabled = enablePatterns->isChecked();
         this->file_size_limit = chunkSize->text().toLongLong();
+        this->fontName = fontName->text();
         newWindow->close();
     });
     QWidget *mainWidget = new QWidget(newWindow);
@@ -539,12 +552,12 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
         } else if (((event->key() == Qt::Key_Minus) || (event->key() == Qt::Key_Down)) && QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
             if (this->fontSize > 2)
                 this->fontSize -= 1;
-            this->qhex->setFont(QFont("Monospace", this->fontSize));
+            this->qhex->setFont(QFont(this->fontName, this->fontSize));
             this->updateUI();
         } else if (((event->key() == Qt::Key_Plus) || (event->key() == Qt::Key_Up)) && QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
             if (this->fontSize < 40)
                 this->fontSize += 1;
-            this->qhex->setFont(QFont("Monospace", this->fontSize));
+            this->qhex->setFont(QFont(this->fontName, this->fontSize));
             this->updateUI();
         }
         updateOffsetBar();
@@ -1150,7 +1163,8 @@ void Fhex::saveSettings(string filePath){
     jsettings["Patterns"]["enabled"] = this->patternsEnabled;
     jsettings["Patterns"]["file"] = this->patternsFile;
     jsettings["FileSizeLimit"] = this->file_size_limit;
-    jsettings["FontSize"] = this->fontSize;
+    jsettings["Font"]["Size"] = this->fontSize;
+    jsettings["Font"]["Name"] = this->fontName.toStdString();
 
     // Merge changes
     jconfig.merge_patch(jsettings);

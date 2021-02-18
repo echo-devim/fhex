@@ -110,6 +110,7 @@ private:
     HexEditor *hexEditor;
     QHexEdit *qhex;
     short fontSize;
+    QString fontName;
     QFrame *convertBox;
     QLabel statusBar;
     QLabel offsetBar;
