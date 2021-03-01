@@ -645,6 +645,10 @@ void Fhex::clearFloatingLabels() {
 bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset, bool updateUI) {
     this->qhex->clear();
     QFileInfo finfo = QFileInfo(path);
+    if (!finfo.isFile()) {
+        this->statusBar.setText("Not a file: " + path);
+        return false;
+    }
     if (offset == 0)
         offset = finfo.size();
     if (offset > this->file_size_limit) {
