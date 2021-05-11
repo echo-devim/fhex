@@ -17,15 +17,38 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: [3.6]
+        python-version: [3.9]
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       with:
-        arch: win64_mingw73
+        arch: win64_mingw81
         modules: qtcharts
+    - name: Install Keystone
+      shell: bash
+      run: |
+        mkdir lib
+        curl -L https://github.com/keystone-engine/keystone/releases/download/0.9.2/keystone-0.9.2-win64.zip -o keystone.zip
+        unzip keystone.zip
+        echo "Installing Keystone along MinGW and QT - in $Qt5_Dir"
+        cd keystone-*
+        mv *.dll ../lib
+        cp -rv include/* $Qt5_Dir/include
+        cd ..
+        rm -rf keystone.zip keystone-*
+    - name: Install Capstone
+      shell: bash
+      run: |
+        curl -L https://github.com/aquynh/capstone/releases/download/4.0.2/capstone-4.0.2-win64.zip -o capstone.zip
+        unzip capstone.zip
+        echo "Installing Capstone along MinGW and QT - in $Qt5_Dir"
+        cd capstone-*
+        mv *.dll ../lib
+        cp -rv include/* $Qt5_Dir/include
+        cd ..
+        rm -rf capstone.zip capstone-*
     - name: Call qmake
       shell: cmd
       # Inspired by https://github.com/jurplel/install-qt-action/blob/master/.github/workflows/test.yml
@@ -33,13 +56,15 @@ jobs:
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         qmake fhex.pro
     - name: Compile the project with make
-      run: make
+      run: |
+        dir
+        make -j
     - name: Add required MinGW DLLs
       shell: cmd
       # We will also need visual studio tools here to find out the dependencies (dumpbin)
       run: |
         call "%programfiles(x86)%\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        python36 bundle-exe-with-dlls.py
+        python bundle-exe-with-dlls.py
     - name: Add QT dependencies with WinDeploy
       shell: cmd
       # Disabled angle and opengl since we don't do 3D graphics here (yet?)
