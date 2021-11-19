@@ -46,4 +46,4 @@ HEADERS += \
     src/core/hexeditor.h \
     src/qhexedit.h
 
-QMAKE_LFLAGS += -lkeystone -lcapstone
+QMAKE_LFLAGS += -lkeystone -lcapstone -L./lib
