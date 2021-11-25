@@ -830,6 +830,12 @@ void Fhex::on_menu_file_diff_click() {
 
 void Fhex::compare(QString filename) {
 
+    // Check if the user loaded a file before diff
+    if (this->hexEditor->fileSize == 0) {
+        this->statusBar.setText("Please open a file first, then diff it with another one");
+        return;
+    }
+
     // Clean-up display
     this->clearFloatingLabels();
     this->listOffsets->clear();
