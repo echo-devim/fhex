@@ -263,7 +263,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     QHBoxLayout *firstRow = new QHBoxLayout(searchBox);
     QHBoxLayout *secondRow = new QHBoxLayout(searchBox);
     searchButton = new QPushButton("Find next");
-    QPushButton *backSearchButton = new QPushButton("Find previous");
+    this->backSearchButton = new QPushButton("Find previous");
     replaceButton = new QPushButton("Replace");
     QPushButton *replaceAllButton = new QPushButton("Replace All");
     connect(backSearchButton, &QPushButton::clicked, this, &Fhex::on_back_search_button_click);
@@ -297,6 +297,8 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     this->regexCheckBox.setText("regex");
     this->regexCheckBox.setChecked(false);
     this->regexCheckBox.setFixedWidth(60);
+    //regex are not supported in backward search
+    connect(&this->regexCheckBox, &QCheckBox::stateChanged, this, &Fhex::on_regex_checkbox_changed);
     firstRow->addWidget(&regexCheckBox);
     firstRow->addWidget(searchButton);
     firstRow->addWidget(backSearchButton);
@@ -363,6 +365,16 @@ Fhex::~Fhex()
 
 void Fhex::on_menu_find_patterns_click() {
     findPatterns();
+}
+
+void Fhex::on_regex_checkbox_changed(int) {
+    if (this->regexCheckBox.isChecked()) {
+        this->statusBar.setText("regex are not supported in backward search");
+        this->backSearchButton->setEnabled(false);
+    } else {
+        this->statusBar.setText("");
+        this->backSearchButton->setEnabled(true);
+    }
 }
 
 void Fhex::on_menu_open_settings_click() {
@@ -949,11 +961,6 @@ void Fhex::on_search_button_click() {
 }
 
 void Fhex::on_back_search_button_click() {
-    //Actually regex are not supported in backward search
-    if (this->regexCheckBox.isChecked()) {
-        this->regexCheckBox.setChecked(false);
-    }
-
     qint64 start = this->qhex->cursorPosition() / 2;
     if (this->searchFormatOption->currentText() == "UTF-8") {
         qint64 res = this->qhex->lastIndexOf(this->searchText->toPlainText().toUtf8(), start);

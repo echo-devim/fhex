@@ -109,6 +109,7 @@ private:
     QListWidget *listOffsets;
     HexEditor *hexEditor;
     QHexEdit *qhex;
+    QPushButton *backSearchButton;
     short fontSize;
     QString fontName;
     QFrame *convertBox;
@@ -175,6 +176,7 @@ public slots:
     void on_menu_binchart_click();
     void on_menu_fasm_click();
     void on_menu_about_click();
+    void on_regex_checkbox_changed(int);
 
 };
 
