@@ -657,10 +657,6 @@ void Fhex::clearFloatingLabels() {
 bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset, bool updateUI) {
     this->qhex->clear();
     QFileInfo finfo = QFileInfo(path);
-    if (!finfo.isFile()) {
-        this->statusBar.setText("Not a file: " + path);
-        return false;
-    }
     if (offset == 0)
         offset = finfo.size();
     if (offset > this->file_size_limit) {
@@ -1061,9 +1057,8 @@ void Fhex::saveDataToFile(string path, bool loadfile) {
     //Cleanup everything
     this->hexEditor->getCurrentData().clear();
     this->hexEditor->getCurrentData().shrink_to_fit();
-    //Now copy from the front-end
-    QByteArray datacopy(this->qhex->data());
-    this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().begin(), datacopy.begin(), datacopy.end());
+    //Now copy data from the front-end
+    this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().begin(), this->qhex->data().begin(), this->qhex->data().end());
     //Update the size, the user could have added/removed bytes
     long diffbytes = this->hexEditor->getCurrentData().size() - this->hexEditor->loadedFileSize;
     this->hexEditor->loadedFileSize = this->hexEditor->getCurrentData().size();

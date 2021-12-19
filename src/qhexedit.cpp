@@ -823,7 +823,9 @@ void QHexEdit::keyPressEvent(QKeyEvent *event)
         setCursorPosition(_cursorPosition);
     }
 
-    refresh();
+    if (!(event->modifiers() & Qt::ShiftModifier)) {
+        refresh(); //Reset position in order to make cursor visible
+    }
 
     emit handle_keyPressEvent(event);
 
