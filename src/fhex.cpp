@@ -1015,20 +1015,17 @@ void Fhex::on_replace_all_button_click() {
     this->statusBar.setText("Replacing all occurences..please wait");
     this->statusBar.repaint();
     long matches = 0;
-    qint64 res = 1;
+    qint64 res;
     bool isHex = (this->searchFormatOption->currentText() == "HEX");
     this->progressBar->setVisible(true);
     this->progressBar->setValue(0);
-    while (res >= 0) {
-        res = replaceBytes(this->searchText->toPlainText(), this->replaceText->toPlainText(), isHex);
-        if (res >= 0) {
+    while ((res = replaceBytes(this->searchText->toPlainText(), this->replaceText->toPlainText(), isHex)) >= 0) {
             matches++;
             this->statusBar.setText("Current matches: " + QString::number(matches));
             this->progressBar->setValue(static_cast<int>(static_cast<unsigned long>(res)*100 / this->hexEditor->loadedFileSize));
-            this->statusBar.repaint();
-            this->qhex->setCursorPosition(res + 1);
-        }
     }
+    this->statusBar.repaint();
+    this->qhex->setCursorPosition(res + 1);
     this->progressBar->setVisible(false);
 
     if (matches == 0)
