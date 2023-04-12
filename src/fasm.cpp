@@ -70,7 +70,6 @@ void Fasm::loadCapstone() {
         cs_option(cs, CS_OPT_SKIPDATA, CS_OPT_ON);
         cs_option(cs, CS_OPT_SKIPDATA_SETUP, (size_t)&skipdata);
         QByteArray bytes = QByteArray::fromHex(this->textOpcodes->toPlainText().toUtf8());
-        char *t = bytes.data();
         count = cs_disasm(cs, reinterpret_cast<uint8_t*>(QByteArray::fromHex(this->textOpcodes->toPlainText().toUtf8()).data()), bytes.size(), 0, 0, &insn);
         if (count > 0) {
             this->statusbar->setText("Disassembled " + QString::number(count) + " instructions");
