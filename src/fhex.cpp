@@ -193,7 +193,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     QAction *hexDec = new QAction(QIcon::fromTheme("gtk-convert"), "&Hex<->Dec", this);
     hexDec->setShortcut(QKeySequence(Qt::Key_F2));
     tools->addAction(hexDec);
-    QAction *escapeHex = new QAction("&Escape Hex Bytes", this);
+    QAction *escapeHex = new QAction("Hex Strin&g Manipulation", this);
     escapeHex->setShortcut(QKeySequence(Qt::Key_F3));
     tools->addAction(escapeHex);
     QAction *fasm = new QAction(QIcon::fromTheme("map-flat"), "&Assembler/Disassembler", this);
@@ -1389,28 +1389,31 @@ void Fhex::on_menu_escape_hex_click() {
     QVBoxLayout *mainLayout =new QVBoxLayout(escapeWindow);
     QLabel *labelHexString = new QLabel("Hex String:", escapeWindow);
     labelHexString->setFixedHeight(20);
-    QLabel *labelEscapedString = new QLabel("Escaped String:", escapeWindow);
-    labelEscapedString->setFixedHeight(20);
+    QLabel *labelOutputString = new QLabel("Output String:", escapeWindow);
+    labelOutputString->setFixedHeight(20);
     QPlainTextEdit *hexStringText = new QPlainTextEdit(escapeWindow);
     hexStringText->setFixedHeight(30);
     hexStringText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     hexStringText->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    QPlainTextEdit *escapedText = new QPlainTextEdit(escapeWindow);
-    escapedText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    escapedText->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    escapedText->setFixedHeight(30);
-    QPushButton *btnEscapeHex = new QPushButton("Escape Hex String", escapeWindow);
+    QPlainTextEdit *outputText = new QPlainTextEdit(escapeWindow);
+    outputText->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    outputText->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    outputText->setFixedHeight(30);
+    QPushButton *btnEscapeHex = new QPushButton("Escape Hex", escapeWindow);
+    QPushButton *btnInvertHex = new QPushButton("Invert Hex", escapeWindow);
     QHBoxLayout *buttonsLayout = new QHBoxLayout(escapeWindow);
     buttonsLayout->addWidget(btnEscapeHex);
+    buttonsLayout->addWidget(btnInvertHex);
     mainLayout->addWidget(labelHexString);
     mainLayout->addWidget(hexStringText);
-    mainLayout->addWidget(labelEscapedString);
-    mainLayout->addWidget(escapedText);
+    mainLayout->addWidget(labelOutputString);
+    mainLayout->addWidget(outputText);
     mainLayout->addLayout(buttonsLayout);
     QWidget *mainWidget = new QWidget();
     mainWidget->setLayout(mainLayout);
 
-    connect(btnEscapeHex, &QPushButton::clicked, [this, hexStringText, escapedText]()
+    // Escape hex bytes
+    connect(btnEscapeHex, &QPushButton::clicked, [this, hexStringText, outputText]()
     {
         QString hext = hexStringText->toPlainText().replace(" ", "");
         if (hext != "") {
@@ -1419,7 +1422,38 @@ void Fhex::on_menu_escape_hex_click() {
                 for (int i = 0; i < hext.length(); i += 2) {
                     escapedHex += "\\x" + hext[i] + hext[i+1];
                 }
-                escapedText->setPlainText(escapedHex);
+                outputText->setPlainText(escapedHex);
+            } else {
+                QMessageBox msgBox;
+                msgBox.setText("Hex String length is invalid. It is not divisible by 2.");
+                msgBox.setStandardButtons(QMessageBox::Ok);
+                msgBox.setDefaultButton(QMessageBox::Ok);
+                msgBox.setIcon(QMessageBox::Icon::Warning);
+                msgBox.setWindowTitle(this->windowTitle());
+                msgBox.setWindowIcon(this->windowIcon());
+                msgBox.exec();
+            }
+        }
+    });
+
+    // Invert hex bytes
+    connect(btnInvertHex, &QPushButton::clicked, [this, hexStringText, outputText]()
+    {
+        QString hext = hexStringText->toPlainText().replace(" ", "");
+        if (hext != "") {
+            if (hext.length() % 2 == 0) {
+                QString invertedHex = "";
+                bool escaped = false;
+                if (hext.contains("\\x")) {
+                    escaped = true;
+                    hext.replace("\\x","");
+                }
+                for (int i = hext.length()-2; i >= 0; i -= 2) {
+                    if (escaped)
+                        invertedHex += "\\x";
+                    invertedHex += QString(hext[i]) + hext[i+1];
+                }
+                outputText->setPlainText(invertedHex);
             } else {
                 QMessageBox msgBox;
                 msgBox.setText("Hex String length is invalid. It is not divisible by 2.");
