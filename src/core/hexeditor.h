@@ -47,6 +47,7 @@ public:
     vector<pair<unsigned long, uint8_t>> compareTo(HexEditor &hexEditor);
     void initCompare();
     bool hasCompared();
+    unsigned long countOccurrences(vector<uint8_t> &bytes);
 
 private:
     PatternMatching *patternMatching;

@@ -76,7 +76,7 @@ public:
 
 private:
     // RELEASE VERSION
-    string version = "3.0.1";
+    string version = "3.0.2";
 
     // JSON
     json jconfig;
@@ -102,6 +102,7 @@ private:
     QComboBox *searchFormatOption;
     QPlainTextEdit *searchText;
     QPushButton *searchButton;
+    QPushButton *searchAllButton;
     QPlainTextEdit *replaceText;
     QPushButton *replaceButton;
     QTableWidget *hexTableWidget;
@@ -150,6 +151,7 @@ public slots:
     void on_menu_file_save_click();
     void on_menu_file_save_as_click();
     void on_search_button_click();
+    void on_search_all_button_click();
     void on_replace_button_click();
     void on_convert_button_click();
     void on_replace_all_button_click();

@@ -267,3 +267,19 @@ vector<pair<unsigned long, uint8_t>>  HexEditor::compareTo(HexEditor &hexEditor)
 
     return diff_bytes;
 }
+
+unsigned long HexEditor::countOccurrences(vector<uint8_t> &bytes) {
+    unsigned long matches = 0;
+    for (unsigned long i = 0; i < this->loadedFileSize-bytes.size(); i++) {
+        bool found = true;
+        for (size_t j = 0; j < bytes.size(); j++) {
+            if (this->getCurrentData()[i+j] != bytes[j]) {
+                found = false;
+                break;
+            }
+        }
+        if (found)
+            matches++;
+    }
+    return matches;
+}

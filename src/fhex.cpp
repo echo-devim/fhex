@@ -262,12 +262,14 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     QFormLayout *searchBoxLayout = new QFormLayout(searchBox);
     QHBoxLayout *firstRow = new QHBoxLayout(searchBox);
     QHBoxLayout *secondRow = new QHBoxLayout(searchBox);
-    searchButton = new QPushButton("Find next");
+    this->searchButton = new QPushButton("Find next");
     this->backSearchButton = new QPushButton("Find previous");
+    this->searchAllButton = new QPushButton("Count Occurrences");
     replaceButton = new QPushButton("Replace");
     QPushButton *replaceAllButton = new QPushButton("Replace All");
     connect(backSearchButton, &QPushButton::clicked, this, &Fhex::on_back_search_button_click);
     connect(searchButton, &QPushButton::clicked, this, &Fhex::on_search_button_click);
+    connect(searchAllButton, &QPushButton::clicked, this, &Fhex::on_search_all_button_click);
     connect(replaceButton, &QPushButton::clicked, this, &Fhex::on_replace_button_click);
     connect(replaceAllButton, &QPushButton::clicked, this, &Fhex::on_replace_all_button_click);
     backSearchButton->setFixedWidth(100);
@@ -304,6 +306,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     firstRow->addWidget(backSearchButton);
     secondRow->addWidget(replaceButton);
     secondRow->addWidget(replaceAllButton);
+    secondRow->addWidget(searchAllButton);
     searchBoxLayout->addRow(searchText, firstRow);
     searchBoxLayout->addRow(replaceText, secondRow);
     searchBox->setLayout(searchBoxLayout);
@@ -953,6 +956,33 @@ void Fhex::on_search_button_click() {
         } else {
             this->statusBar.setText("Found match at 0x" + QString::number(res, 16));
         }
+    }
+}
+
+void Fhex::on_search_all_button_click() {
+    this->qhex->setCursorPosition(0);
+    this->statusBar.setText("Replacing all occurences..please wait");
+    this->statusBar.repaint();
+    bool isHex = (this->searchFormatOption->currentText() == "HEX");
+    QString searchstr = this->searchText->toPlainText().toUtf8();
+    if (searchstr != "") {
+        vector<uint8_t> data;
+        if (isHex) {
+            searchstr = searchstr.replace(" ","");
+            QByteArray searchbytes = QByteArray::fromHex(searchstr.toLatin1());
+            for (int j = 0; j < searchbytes.size(); j++) {
+                data.push_back((uint8_t)searchbytes[j]);
+            }
+        } else {
+            for (int j = 0; j < searchstr.length(); j++) {
+                data.push_back((uint8_t)searchstr[j].toLatin1());
+            }
+        }
+        unsigned long matches = this->hexEditor->countOccurrences(data);
+        if (matches == 0)
+            this->statusBar.setText("No match found");
+        else
+            this->statusBar.setText("Found " + QString::number(matches) + " occurences");
     }
 }
 
