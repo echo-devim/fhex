@@ -219,7 +219,13 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
 
     qhex = new QHexEdit(this);
     qhex->setMinimumWidth(600);
-    qhex->setStyleSheet("QHexEdit { background-color: #17120f; color: #ebe5e1; }");
+    this->bgcolor = "#17120f";
+    if (this->jconfig.contains("Apparence")) {
+        if (this->jconfig["Apparence"].contains("background-color")) {
+            this->bgcolor = this->jconfig["Apparence"]["background-color"];
+        }
+    }
+    qhex->setStyleSheet("QHexEdit { background-color: "+QString(bgcolor.c_str())+";}");
     qhex->setAddressAreaColor(color_dark_gray);
     qhex->setSelectionColor(color_dark_yellow);
     qhex->setHighlightingColor(color_dark_violet);
@@ -1207,6 +1213,7 @@ void Fhex::saveSettings(string filePath){
     jsettings["FileSizeLimit"] = this->file_size_limit;
     jsettings["Font"]["Size"] = this->fontSize;
     jsettings["Font"]["Name"] = this->fontName.toStdString();
+    jsettings["Apparence"]["background-color"] = this->bgcolor;
 
     // Merge changes
     jconfig.merge_patch(jsettings);
