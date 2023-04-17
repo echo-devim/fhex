@@ -1270,9 +1270,9 @@ void Fhex::on_menu_open_text_viewer_click() {
     newWindow->setWindowTitle("Fhex - Text Viewer");
     QTextEdit *textEdit = new QTextEdit(newWindow);
     textEdit->setStyleSheet("QTextEdit { background-color: #17120f; color: #ebe5e1; font-size: 16px; }");
-    textEdit->setText(QByteArray::fromHex(this->qhex->selectedData().replace("00", "0a").toUtf8()));
-    if (textEdit->toPlainText() == "")
-        textEdit->setText(this->qhex->data());
+    pair<qint64,qint64> offsets = this->qhex->selectedOffsets();
+    string content = this->hexEditor->getCurrentDataAsString(offsets.first, offsets.second - offsets.first);
+    textEdit->setText(content.c_str());
     newWindow->setMinimumWidth(this->width());
     newWindow->setMinimumHeight(this->height());
     newWindow->setCentralWidget(textEdit);
