@@ -101,7 +101,12 @@ vector<uint8_t> &HexEditor::getCurrentData() {
 }
 
 string HexEditor::getCurrentDataAsString(unsigned long start, unsigned long len) {
-    std::string str(this->current_data.begin() + start, this->current_data.begin() + start + len);
+    string str;
+    std::for_each(this->current_data.begin() + start, this->current_data.begin() + start + len, [&str](uint8_t const& elem) {
+        if (elem != 0) {
+            str.push_back((char)elem);
+        }
+    });
     return str;
 }
 

@@ -555,7 +555,7 @@ void Fhex::keyPressEvent(QKeyEvent *event) {
     if(event->type() == QKeyEvent::KeyPress) {
         if ((event->key() == Qt::Key_Space) && QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
             pair<qint64,qint64> offsets = this->qhex->selectedOffsets();
-            QApplication::clipboard()->setText(QString::fromWCharArray(this->hexEditor->getCurrentDataAsWString(offsets.first, offsets.second - offsets.first).c_str()));
+            QApplication::clipboard()->setText(this->hexEditor->getCurrentDataAsString(offsets.first, offsets.second - offsets.first).c_str());
             this->statusBar.setText("Text copied");
         } else if (event->key() == Qt::Key_F5) {
             this->loadFile(this->hexEditor->getCurrentPath().c_str());
