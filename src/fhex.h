@@ -87,6 +87,9 @@ private:
     string settingsPath;
     string patternsFile;
 
+    // COLOR SCHEME
+    string bgcolor;
+
     // PATTERNS
     bool patternsEnabled;
 
