@@ -1137,6 +1137,8 @@ void Fhex::on_menu_convert_bytes_click() {
 void Fhex::on_convert_button_click() {
     QString out = "";
     QString data = this->qhex->selectedData();
+    pair<qint64,qint64> offsets = this->qhex->selectedOffsets();
+    unsigned long selected_bytes = offsets.second - offsets.first;
     out += "<html><i>Big Endian</i><hr>Decimal Integer:<br><b>" + QString::number(data.toInt(nullptr, 16)) + "</b>";
     out += "<hr>Decimal Long:<br><b>" + QString::number(data.toLong(nullptr, 16)) + "</b>";
     out += "<hr>Decimal Unsigned Long:<br><b>" + QString::number(data.toULong(nullptr, 16)) + "</b>";
@@ -1144,9 +1146,26 @@ void Fhex::on_convert_button_click() {
     for (int i=data.length()-2; i >= 0; i-=2) {
         revData += data.mid(i, 2);
     }
-    out += "<hr><br><i>Little Endian</i><hr>Decimal Integer:<br><b>" + QString::number(revData.toUInt(nullptr, 16)) + "</b>";
+    out += "<hr><br><i>Little Endian</i><hr>Decimal Integer:<br><b>" + QString::number(revData.toInt(nullptr, 16)) + "</b>";
     out += "<hr>Decimal Long:<br><b>" + QString::number(revData.toLong(nullptr, 16)) + "</b>";
-    out += "<hr>Decimal Unsigned Long:<br><b>" + QString::number(revData.toULong(nullptr, 16)) + "</b></html>";
+    out += "<hr>Decimal Unsigned Long:<br><b>" + QString::number(revData.toULong(nullptr, 16)) + "</b>";
+    if (selected_bytes == 4) {
+        char timedisplay[100] = {0,};
+        const long time = revData.toLong(nullptr, 16);
+        if (std::strftime(timedisplay, sizeof(timedisplay), "%d/%m/%Y %H:%M:%S ", std::localtime(&time))) {
+            out += "<hr>Unix Time:<br><b>" + QString(timedisplay) + "</b>";
+        }
+    } else if (selected_bytes == 8) {
+        char timedisplay[100] = {0,};
+        unsigned long wtime = revData.toLong(nullptr, 16);
+        //Convert windows time to unix timestamp
+        wtime = (wtime / 10000000) - 11644473600LL;
+        const long time = wtime;
+        if (std::strftime(timedisplay, sizeof(timedisplay), "%d/%m/%Y %H:%M:%S ", std::localtime(&time))) {
+            out += "<hr>Windows File Time:<br><b>" + QString(timedisplay) + "</b>";
+        }
+    }
+    out += "</html>";
     this->convertLabel.setText(out);
 }
 
