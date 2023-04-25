@@ -228,7 +228,7 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
             this->bgcolor = QString(configbgcolor.c_str());
         }
     }
-    qhex->setStyleSheet("QHexEdit { background-color: "+bgcolor+";}");
+    qhex->setStyleSheet("QHexEdit { background-color: "+bgcolor+"; color: #ffffff;}");
     qhex->setAddressAreaColor(color_dark_gray);
     qhex->setSelectionColor(color_dark_yellow);
     qhex->setHighlightingColor(color_dark_violet);
