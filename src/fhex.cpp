@@ -523,8 +523,14 @@ void Fhex::backgroundUpdateHexWidget() {
 
 void Fhex::updateOffsetBar() {
     qint64 offset = this->currentCursorPos;
+    QString unitmeasure = "KB";
+    double file_size = this->hexEditor->fileSize / 1024.0;
+    if (file_size > 1024) {
+        file_size = file_size / 1024.0;
+        unitmeasure = "MB";
+    }
     this->offsetBar.setText("Offset: 0x" + QString::number(offset, 16) + " (" + QString::number(offset) + ") | "
-                            + "File Size: " + QString::number(this->hexEditor->fileSize / 1024.0, 'f', 2) + " KB");
+                            + "File Size: " + QString::number(file_size, 'f', 2) + " " + unitmeasure);
 }
 
 void Fhex::updateOffsetBarWithSelection() {
@@ -710,7 +716,14 @@ bool Fhex::loadFile(QString path, unsigned long start, unsigned long offset, boo
         if (this->hexEditor->loadedFileSize < this->hexEditor->fileSize) {
             portion = QString::number(this->hexEditor->loadedFileSize / 1024.0) + " KB of ";
         }
-        this->statusBar.setText("Loaded (" + portion + QString::number(this->hexEditor->fileSize / 1024.0) + " KB) in " + QString::number(duration / 1000.) + "s");
+        QString unitmeasure = "KB";
+        double file_size = this->hexEditor->fileSize / 1024.0;
+        if (file_size > 1024) {
+            file_size = file_size / 1024.0;
+            unitmeasure = "MB";
+        }
+        this->statusBar.setText("Loaded (" + portion + QString::number(file_size, 'f', 2) + " " + unitmeasure + ") in " + QString::number(duration / 1000.) + "s");
+        this->offsetBar.clear();
         this->setWindowTitle("Fhex - " + QString(this->hexEditor->getCurrentPath().c_str()));
         loadBinChart();
         if (updateUI) {
