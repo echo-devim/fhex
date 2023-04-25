@@ -2,6 +2,7 @@
 #define FHEX_H
 
 #include <QMainWindow>
+#include <QColorDialog>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QGridLayout>
@@ -88,7 +89,7 @@ private:
     string patternsFile;
 
     // COLOR SCHEME
-    string bgcolor;
+    QString bgcolor;
 
     // PATTERNS
     bool patternsEnabled;
@@ -144,6 +145,7 @@ private:
     void updateOffsetBarWithSelection();
     void chunkOpenFile(QString fpath = "");
     void updateUI();
+    QColor selectColor();
 
 public slots:
     void on_editor_mouse_click();

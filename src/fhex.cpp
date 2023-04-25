@@ -222,10 +222,11 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     this->bgcolor = "#17120f";
     if (this->jconfig.contains("Apparence")) {
         if (this->jconfig["Apparence"].contains("background-color")) {
-            this->bgcolor = this->jconfig["Apparence"]["background-color"];
+            string configbgcolor = this->jconfig["Apparence"]["background-color"];
+            this->bgcolor = QString(configbgcolor.c_str());
         }
     }
-    qhex->setStyleSheet("QHexEdit { background-color: "+QString(bgcolor.c_str())+";}");
+    qhex->setStyleSheet("QHexEdit { background-color: "+bgcolor+";}");
     qhex->setAddressAreaColor(color_dark_gray);
     qhex->setSelectionColor(color_dark_yellow);
     qhex->setHighlightingColor(color_dark_violet);
@@ -417,12 +418,21 @@ void Fhex::on_menu_open_settings_click() {
     fontName->setText(this->fontName);
     fontName->setFixedWidth(300);
     form->addRow(labelFontName, fontName);
+    QLabel *labelBackgroundColor = new QLabel("Background Color:", newWindow);
+    QPushButton *bgcolorbtn = new QPushButton("Select", newWindow);
+    bgcolorbtn->setFixedWidth(80);
+    form->addRow(labelBackgroundColor, bgcolorbtn);
     QPushButton *btnSave = new QPushButton("Save", newWindow);
     btnSave->setFixedWidth(80);
     QPushButton *btnCancel = new QPushButton("Cancel", newWindow);
     btnCancel->setFixedWidth(80);
     form->addRow(btnSave, btnCancel);
 
+    connect(bgcolorbtn, &QPushButton::clicked, [this]()
+    {
+        this->bgcolor = this->selectColor().name();
+
+    });
     connect(selectPatternsFile, &QPushButton::clicked, [this, patternsFile]()
     {
         this->on_menu_open_patterns_click();
@@ -444,6 +454,10 @@ void Fhex::on_menu_open_settings_click() {
     mainWidget->setLayout(form);
     newWindow->setCentralWidget(mainWidget);
     newWindow->show();
+}
+
+QColor Fhex::selectColor() {
+    return QColorDialog::getColor(this->bgcolor);
 }
 
 void Fhex::on_menu_about_click() {
@@ -1245,7 +1259,7 @@ void Fhex::saveSettings(string filePath){
     jsettings["FileSizeLimit"] = this->file_size_limit;
     jsettings["Font"]["Size"] = this->fontSize;
     jsettings["Font"]["Name"] = this->fontName.toStdString();
-    jsettings["Apparence"]["background-color"] = this->bgcolor;
+    jsettings["Apparence"]["background-color"] = this->bgcolor.toStdString();
 
     // Merge changes
     jconfig.merge_patch(jsettings);
