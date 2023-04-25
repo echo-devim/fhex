@@ -78,7 +78,7 @@ public:
 
 private:
     // RELEASE VERSION
-    string version = "3.0.3";
+    string version = "3.0.4";
 
     // JSON
     json jconfig;
