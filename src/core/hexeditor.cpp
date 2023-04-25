@@ -1,9 +1,5 @@
 #include "hexeditor.h"
 
-/*
- * REMOVED HARDCODED PATTERNS FILE PATH
- */
-
 HexEditor::HexEditor()
 {
     this->fileSize = 0;

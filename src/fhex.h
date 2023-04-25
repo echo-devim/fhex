@@ -53,8 +53,9 @@
 
 #include "qhexedit.h"
 #include "core/hexeditor.h"
+#ifndef MINIMAL
 #include "fasm.h"
-
+#endif
 #define MAX_DIFF_BYTES 3000
 #define DEFAULT_UNPRINTABLE_CHAR "."
 #define CHUNK_SIZE 1024
@@ -93,8 +94,9 @@ private:
 
     // PATTERNS
     bool patternsEnabled;
-
+#ifndef MINIMAL
     Fasm *fasm;
+#endif
     unsigned long file_size_limit = 1073741824; //1GB is the maximum amount of bytes that the hex editor can load into memory (configurable)
     qint64 lastCursorPos = 0;
     qint64 currentCursorPos = 0;
@@ -181,7 +183,9 @@ public slots:
     void on_menu_escape_hex_click();
     void on_binchart_click(const QPointF &p);
     void on_menu_binchart_click();
+#ifndef MINIMAL
     void on_menu_fasm_click();
+#endif
     void on_menu_about_click();
     void on_regex_checkbox_changed(int);
 

@@ -31,8 +31,8 @@ SOURCES += \
     src/chunks.cpp \
     src/commands.cpp \
     src/core/patternmatching.cpp \
-        src/main.cpp \
-        src/fhex.cpp \
+    src/main.cpp \
+    src/fhex.cpp \
     src/core/hexeditor.cpp \
     src/qhexedit.cpp
 
@@ -42,7 +42,7 @@ HEADERS += \
     src/commands.h \
     src/core/json.h \
     src/core/patternmatching.h \
-        src/fhex.h \
+    src/fhex.h \
     src/core/hexeditor.h \
     src/qhexedit.h
 

@@ -196,13 +196,15 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
     QAction *escapeHex = new QAction("Hex Strin&g Manipulation", this);
     escapeHex->setShortcut(QKeySequence(Qt::Key_F3));
     tools->addAction(escapeHex);
+#ifndef MINIMAL
     QAction *fasm = new QAction(QIcon::fromTheme("map-flat"), "&Assembler/Disassembler", this);
     fasm->setShortcut(QKeySequence(Qt::Key_F4));
     tools->addAction(fasm);
-
+    connect(fasm, &QAction::triggered, this, &Fhex::on_menu_fasm_click);
+#endif
     connect(hexDec, &QAction::triggered, this, &Fhex::on_menu_hex_dec_converter_click);
     connect(escapeHex, &QAction::triggered, this, &Fhex::on_menu_escape_hex_click);
-    connect(fasm, &QAction::triggered, this, &Fhex::on_menu_fasm_click);
+
 
     QMenu *help;
     help = menuBar()->addMenu("&Help");
@@ -351,8 +353,9 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
 
     this->statusBar.setText("Fhex loaded");
     this->setCentralWidget(mainWidget);
+#ifndef MINIMAL
     this->fasm = nullptr;
-
+#endif
     //If a filepath was passed as argument, open it
     if (filepath != "") {
         this->loadFile(filepath);
@@ -368,9 +371,11 @@ Fhex::Fhex(QWidget *parent, QApplication *app, QString filepath)
 Fhex::~Fhex()
 {
     delete this->hexEditor;
+#ifndef MINIMAL
     if (this->fasm != nullptr) {
         delete this->fasm;
     }
+#endif
 }
 
 void Fhex::on_menu_find_patterns_click() {
@@ -499,6 +504,7 @@ void Fhex::on_menu_about_click() {
     newWindow->show();
 }
 
+#ifndef MINIMAL
 void Fhex::on_menu_fasm_click() {
     if (fasm != nullptr) {
         delete fasm;
@@ -507,6 +513,7 @@ void Fhex::on_menu_fasm_click() {
     fasm = new Fasm(this->qhex->selectedData());
     fasm->show();
 }
+#endif
 
 void Fhex::on_menu_offset_list_click() {
     this->listOffsets->setVisible(!this->listOffsets->isVisible());

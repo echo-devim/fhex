@@ -5,7 +5,7 @@ PatternMatching::PatternMatching(string path)
     std::ifstream configFile(path);
 
     if (!configFile.good()) {
-        cerr << "The file '" << path << "' is not accessible." << endl;
+        cerr << "The pattern config file '" << path << "' is not accessible." << endl;
         return;
     }
 
