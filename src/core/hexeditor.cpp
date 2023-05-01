@@ -284,3 +284,21 @@ unsigned long HexEditor::countOccurrences(vector<uint8_t> &bytes) {
     }
     return matches;
 }
+
+unsigned long HexEditor::findOccurrence(vector<uint8_t> &bytes, unsigned long start) {
+    unsigned long offset = 0;
+    for (unsigned long i = 0; i < this->loadedFileSize-bytes.size(); i++) {
+        bool found = true;
+        for (size_t j = start; j < bytes.size(); j++) {
+            if (this->getCurrentData()[i+j] != bytes[j]) {
+                found = false;
+                break;
+            }
+        }
+        if (found) {
+            offset = i-bytes.size();
+            break;
+        }
+    }
+    return offset;
+}

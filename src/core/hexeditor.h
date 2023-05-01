@@ -48,6 +48,7 @@ public:
     void initCompare();
     bool hasCompared();
     unsigned long countOccurrences(vector<uint8_t> &bytes);
+    unsigned long findOccurrence(vector<uint8_t> &bytes, unsigned long start);
 
 private:
     PatternMatching *patternMatching;
