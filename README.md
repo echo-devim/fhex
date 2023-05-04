@@ -67,5 +67,19 @@ The y-axis range is between 0 and 255 (in hex 0x0 and 0xff, i.e. the byte values
 
 The chart plots the byte values of the binary file and let you focus only on the relevant sections. For example, if in a binary file there is an area full of null bytes, you can easily detect it from the chart.
 
+## Compilation
+The project has the following dependences: qt5-charts (package: libqt5charts5-dev in debian/ubuntu), capstone (optional) and keystone (optional).
+On linux you can check if you have the mandatory library with `ldconfig -p | grep -i qt5charts`
+
+Fhex by default is compiled with the MINIMAL profile, this means it doesn't include capstone and keystone. You can change this option removing the related line from `fhex.pro`.
+
+In order to build Fhex on linux execute these commands:
+```sh
+mkdir build
+cd build
+qmake ..
+make -j$(nproc)
+```
+
 ### License
 GPL-3
