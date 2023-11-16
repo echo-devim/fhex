@@ -48,6 +48,7 @@
 #include <chrono>
 #include <thread>
 #include <future>
+#include <algorithm>
 
 #include "core/json.h"
 
@@ -78,7 +79,7 @@ public:
 
 private:
     // RELEASE VERSION
-    string version = "3.0.4";
+    string version = "3.0.5";
 
     // JSON
     json jconfig;

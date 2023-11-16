@@ -1126,7 +1126,16 @@ void Fhex::saveDataToFile(string path, bool loadfile) {
     this->hexEditor->getCurrentData().clear();
     this->hexEditor->getCurrentData().shrink_to_fit();
     //Now copy data from the front-end
-    this->hexEditor->getCurrentData().insert(this->hexEditor->getCurrentData().begin(), this->qhex->data().begin(), this->qhex->data().end());
+    try {
+        for(const char c : this->qhex->data()) {
+            this->hexEditor->getCurrentData().push_back(uint8_t(c));
+        }
+    } catch(const exception &e) {
+        this->statusBar.setText("SAVE ERROR! " + QString(e.what()));
+        return;
+    }
+
+    //
     //Update the size, the user could have added/removed bytes
     long diffbytes = this->hexEditor->getCurrentData().size() - this->hexEditor->loadedFileSize;
     this->hexEditor->loadedFileSize = this->hexEditor->getCurrentData().size();
